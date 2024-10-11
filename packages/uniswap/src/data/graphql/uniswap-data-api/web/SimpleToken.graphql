@@ -1,0 +1,20 @@
+fragment SimpleTokenDetails on Token {
+  id
+  address
+  chain
+  decimals
+  name
+  standard
+  symbol
+  project {
+    id
+    isSpam
+    logoUrl
+    name
+    safetyLevel
+  }
+  feeData {
+    buyFeeBps
+    sellFeeBps
+  }
+}
