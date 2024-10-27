@@ -3,7 +3,6 @@ import { Limit } from 'components/Icons/Limit'
 import { Send } from 'components/Icons/Send'
 import { SwapV2 } from 'components/Icons/SwapV2'
 import { MenuItem } from 'components/NavBar/CompanyMenu/Content'
-import { useTabsVisible } from 'components/NavBar/ScreenSizes'
 import { useTheme } from 'lib/styled-components'
 import { useLocation } from 'react-router-dom'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
@@ -23,13 +22,12 @@ export type TabsItem = MenuItem & {
   quickKey: string
 }
 
+// eslint-disable-next-line
 export const useTabsContent = (props?: { includeNftsLink?: boolean }): TabsSection[] => {
   const { t } = useTranslation()
   const forAggregatorEnabled = useFeatureFlag(FeatureFlags.ForAggregator)
-  const isMultichainExploreEnabled = useFeatureFlag(FeatureFlags.MultichainExplore)
   const { pathname } = useLocation()
   const theme = useTheme()
-  const areTabsVisible = useTabsVisible()
 
   return [
     {
@@ -72,22 +70,6 @@ export const useTabsContent = (props?: { includeNftsLink?: boolean }): TabsSecti
       ],
     },
     {
-      title: t('common.explore'),
-      href: '/explore',
-      isActive: pathname.startsWith('/explore') || pathname.startsWith('/nfts'),
-      items: [
-        { label: t('common.tokens'), quickKey: 'T', href: '/explore/tokens', internal: true },
-        { label: t('common.pools'), quickKey: 'P', href: '/explore/pools', internal: true },
-        {
-          label: t('common.transactions'),
-          quickKey: 'X',
-          href: `/explore/transactions${isMultichainExploreEnabled ? '/ethereum' : ''}`,
-          internal: true,
-        },
-        { label: t('common.nfts'), quickKey: 'N', href: '/nfts', internal: true },
-      ],
-    },
-    {
       title: t('common.pool'),
       href: '/pool',
       isActive: pathname.startsWith('/pool'),
@@ -101,13 +83,5 @@ export const useTabsContent = (props?: { includeNftsLink?: boolean }): TabsSecti
         },
       ],
     },
-    ...(!areTabsVisible || props?.includeNftsLink
-      ? [
-          {
-            title: t('common.nfts'),
-            href: '/nfts',
-          },
-        ]
-      : []),
   ]
 }
