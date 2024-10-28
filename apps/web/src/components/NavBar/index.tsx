@@ -1,7 +1,6 @@
 import { Bag } from 'components/NavBar/Bag'
 import { ChainSelector } from 'components/NavBar/ChainSelector'
 import { CompanyMenu } from 'components/NavBar/CompanyMenu'
-import { NewUserCTAButton } from 'components/NavBar/DownloadApp/NewUserCTAButton'
 import { PreferenceMenu } from 'components/NavBar/PreferencesMenu'
 import { useTabsVisible } from 'components/NavBar/ScreenSizes'
 import { SearchBar } from 'components/NavBar/SearchBar'
@@ -69,15 +68,6 @@ const Right = styled(Row)`
   justify-content: flex-end;
   ${NavItems}
 `
-const SearchContainer = styled.div`
-  display: flex;
-  flex: 1;
-  flex-shrink: 1;
-  justify-content: center;
-  align-self: center;
-  align-items: flex-start;
-  height: 42px;
-`
 
 function useShouldHideChainSelector() {
   const isNftPage = useIsNftPage()
@@ -109,19 +99,15 @@ function useShouldHideChainSelector() {
 
 export default function Navbar() {
   const isNftPage = useIsNftPage()
-  const isLandingPage = useIsLandingPage()
 
   const sellPageState = useProfilePageState((state) => state.state)
   const isSmallScreen = !useScreenSize()['sm']
-  const isMediumScreen = !useScreenSize()['md']
   const areTabsVisible = useTabsVisible()
   const collapseSearchBar = !useScreenSize()['lg']
   const account = useAccount()
   const NAV_SEARCH_MAX_HEIGHT = 'calc(100vh - 30px)'
 
   const hideChainSelector = useShouldHideChainSelector()
-
-  const isSignInExperimentControl = useIsAccountCTAExperimentControl()
 
   return (
     <Nav>
@@ -130,19 +116,12 @@ export default function Navbar() {
           <CompanyMenu />
           {areTabsVisible && <Tabs />}
         </Left>
-
-        <SearchContainer>
-          {!collapseSearchBar && <SearchBar maxHeight={NAV_SEARCH_MAX_HEIGHT} fullScreen={isSmallScreen} />}
-        </SearchContainer>
-
         <Right>
           {collapseSearchBar && <SearchBar maxHeight={NAV_SEARCH_MAX_HEIGHT} fullScreen={isSmallScreen} />}
           {isNftPage && sellPageState !== ProfilePageStateType.LISTING && <Bag />}
-          {isSignInExperimentControl && isLandingPage && !isSmallScreen && <NewUserCTAButton />}
           {!account.isConnected && !account.isConnecting && <PreferenceMenu />}
           {!hideChainSelector && <ChainSelector isNavSelector />}
           <Web3Status />
-          {!isSignInExperimentControl && !account.address && !isMediumScreen && <NewUserCTAButton />}
         </Right>
       </NavContents>
     </Nav>
