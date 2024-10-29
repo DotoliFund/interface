@@ -1,12 +1,5 @@
-import { CreditCardIcon } from 'components/Icons/CreditCard'
-import { Limit } from 'components/Icons/Limit'
-import { Send } from 'components/Icons/Send'
-import { SwapV2 } from 'components/Icons/SwapV2'
 import { MenuItem } from 'components/NavBar/CompanyMenu/Content'
-import { useTheme } from 'lib/styled-components'
 import { useLocation } from 'react-router-dom'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useTranslation } from 'uniswap/src/i18n'
 
 export type TabsSection = {
@@ -25,63 +18,26 @@ export type TabsItem = MenuItem & {
 // eslint-disable-next-line
 export const useTabsContent = (props?: { includeNftsLink?: boolean }): TabsSection[] => {
   const { t } = useTranslation()
-  const forAggregatorEnabled = useFeatureFlag(FeatureFlags.ForAggregator)
   const { pathname } = useLocation()
-  const theme = useTheme()
 
   return [
     {
       title: t('common.trade'),
       href: '/swap',
-      isActive: pathname.startsWith('/swap') || pathname.startsWith('/limit') || pathname.startsWith('/send'),
-      items: [
-        {
-          label: t('common.swap'),
-          icon: <SwapV2 fill={theme.neutral2} />,
-          quickKey: 'U',
-          href: '/swap',
-          internal: true,
-        },
-        {
-          label: t('swap.limit'),
-          icon: <Limit fill={theme.neutral2} />,
-          quickKey: 'L',
-          href: '/limit',
-          internal: true,
-        },
-        {
-          label: t('common.send.button'),
-          icon: <Send fill={theme.neutral2} />,
-          quickKey: 'E',
-          href: '/send',
-          internal: true,
-        },
-        ...(forAggregatorEnabled
-          ? [
-              {
-                label: t('common.buy.label'),
-                icon: <CreditCardIcon fill={theme.neutral2} />,
-                quickKey: 'B',
-                href: '/buy',
-                internal: true,
-              },
-            ]
-          : []),
-      ],
+      isActive: pathname.startsWith('/swap'),
+      items: [],
     },
     {
       title: t('common.pool'),
       href: '/pool',
       isActive: pathname.startsWith('/pool'),
-      items: [
-        { label: t('nav.tabs.viewPosition'), quickKey: 'V', href: '/pool', internal: true },
-        {
-          label: t('nav.tabs.createPosition'),
-          quickKey: 'V',
-          href: '/add',
-          internal: true,
-        },
-      ],
+      items: [],
+    },
+    {
+      title: t('common.overview'),
+      href: '/overview',
+      isActive: pathname.startsWith('/overview'),
+      items: [],
     },
   ]
 }

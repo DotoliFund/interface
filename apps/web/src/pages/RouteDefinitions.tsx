@@ -371,6 +371,12 @@ export const routes: RouteDefinition[] = [
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),
+  createRouteDefinition({
+    path: '/overview',
+    getElement: (args) => (args.featureFlags[FeatureFlags.V4Everywhere] ? <Pool /> : <LegacyPool />),
+    getTitle: getPositionPageTitle,
+    getDescription: getPositionPageDescription,
+  }),
 ]
 
 export const findRouteByPath = (pathname: string) => {
