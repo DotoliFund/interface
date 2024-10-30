@@ -2173,5 +2173,7 @@
   "web.explore.title.pools": "Uniswap의 {{network}} 에서 최고의 풀을 탐색해보세요",
   "web.explore.title.tokens": "Uniswap에서 {{network}} 의 상위 토큰을 살펴보세요",
   "web.explore.title.transactions": "Uniswap에서 {{network}} 의 인기 트랜잭션을 살펴보세요",
-  "common.overview": "개요"
+  "common.overview": "개요",
+  "common.account": "내 계정",
+  "common.staking": "스테이킹"
 }

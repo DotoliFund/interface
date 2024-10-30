@@ -39,5 +39,17 @@ export const useTabsContent = (props?: { includeNftsLink?: boolean }): TabsSecti
       isActive: pathname.startsWith('/overview'),
       items: [],
     },
+    {
+      title: t('common.account'),
+      href: '/account',
+      isActive: pathname.startsWith('/account'),
+      items: [],
+    },
+    {
+      title: t('common.staking'),
+      href: '/staking',
+      isActive: pathname.startsWith('/staking'),
+      items: [],
+    },
   ]
 }

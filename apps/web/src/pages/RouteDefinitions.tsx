@@ -377,6 +377,18 @@ export const routes: RouteDefinition[] = [
     getTitle: getPositionPageTitle,
     getDescription: getPositionPageDescription,
   }),
+  createRouteDefinition({
+    path: '/account',
+    getElement: (args) => (args.featureFlags[FeatureFlags.V4Everywhere] ? <Pool /> : <LegacyPool />),
+    getTitle: getPositionPageTitle,
+    getDescription: getPositionPageDescription,
+  }),
+  createRouteDefinition({
+    path: '/staking',
+    getElement: (args) => (args.featureFlags[FeatureFlags.V4Everywhere] ? <Pool /> : <LegacyPool />),
+    getTitle: getPositionPageTitle,
+    getDescription: getPositionPageDescription,
+  }),
 ]
 
 export const findRouteByPath = (pathname: string) => {
