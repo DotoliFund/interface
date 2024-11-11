@@ -34,6 +34,7 @@ const RemoveLiquidity = lazy(() => import('pages/RemoveLiquidity'))
 const RemoveLiquidityV3 = lazy(() => import('pages/RemoveLiquidity/V3'))
 const TokenDetails = lazy(() => import('pages/TokenDetails'))
 const Vote = lazy(() => import('pages/Vote'))
+const OverviewPage = lazy(() => import('pages/Overview'))
 
 // this is the same svg defined in assets/images/blue-loader.svg
 // it is defined here because the remote asset may not have had time to load when this file is executing
@@ -371,6 +372,24 @@ export const routes: RouteDefinition[] = [
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),
+  createRouteDefinition({
+    path: '/overview',
+    getElement: () => <OverviewPage />,
+    getTitle: getPositionPageTitle,
+    getDescription: getPositionPageDescription,
+  }),
+  createRouteDefinition({
+    path: '/account',
+    getElement: (args) => (args.featureFlags[FeatureFlags.V4Everywhere] ? <Pool /> : <LegacyPool />),
+    getTitle: getPositionPageTitle,
+    getDescription: getPositionPageDescription,
+  }),
+  createRouteDefinition({
+    path: '/staking',
+    getElement: (args) => (args.featureFlags[FeatureFlags.V4Everywhere] ? <Pool /> : <LegacyPool />),
+    getTitle: getPositionPageTitle,
+    getDescription: getPositionPageDescription,
+  }),
 ]
 
 export const findRouteByPath = (pathname: string) => {

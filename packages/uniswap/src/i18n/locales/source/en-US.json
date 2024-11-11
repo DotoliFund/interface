@@ -2172,5 +2172,8 @@
   "web.explore.description": "Discover and research tokens on {{network}}. Explore top pools. View real-time prices, trading volume, TVL, charts, and transaction data.",
   "web.explore.title.pools": "Explore top pools on {{network}} on Uniswap",
   "web.explore.title.tokens": "Explore top tokens on {{network}} on Uniswap",
-  "web.explore.title.transactions": "Explore top transactions on {{network}} on Uniswap"
+  "web.explore.title.transactions": "Explore top transactions on {{network}} on Uniswap",
+  "common.overview": "Overview",
+  "common.account": "Account",
+  "common.staking": "Staking"
 }
