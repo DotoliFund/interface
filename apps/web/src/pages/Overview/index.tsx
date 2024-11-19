@@ -13,6 +13,26 @@ import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { Trans } from 'uniswap/src/i18n'
 import { UniverseChainId } from 'uniswap/src/types/chains'
 
+import { useQuery } from '@tanstack/react-query'
+import { gql, request } from 'graphql-request'
+const query = gql`
+  {
+    settings(first: 5) {
+      id
+      managerFee
+      minPoolAmount
+      owner
+    }
+    infos(first: 5) {
+      id
+      fundCount
+      investorCount
+      totalCurrentETH
+    }
+  }
+`
+const url = 'https://api.studio.thegraph.com/query/44946/dotoli/version/latest'
+
 export enum ExploreTab {
   Tokens = 'tokens',
   Pools = 'pools',
@@ -46,6 +66,22 @@ const Pages: Array<Page> = [
     loggingElementName: InterfaceElementName.EXPLORE_TRANSACTIONS_TAB,
   },
 ]
+
+function TestApp() {
+  const { data, status } = useQuery({
+    queryKey: ['data'],
+    async queryFn() {
+      return await request(url, query)
+    },
+  })
+  return (
+    <main>
+      {status === 'pending' ? <div>Loading...</div> : null}
+      {status === 'error' ? <div>Error ocurred querying the Subgraph</div> : null}
+      <div>{JSON.stringify(data ?? {})}</div>
+    </main>
+  )
+}
 
 const OverviewPage = ({ initialTab }: { initialTab?: ExploreTab }) => {
   const tabNavRef = useRef<HTMLDivElement>(null)
@@ -81,6 +117,7 @@ const OverviewPage = ({ initialTab }: { initialTab?: ExploreTab }) => {
   return (
     <Flex width="100%" minWidth={320} pt="$spacing48" px="$spacing40" $md={{ p: '$spacing16', pb: 0 }}>
       {/* <ExploreChartsSection /> */}
+      <TestApp />
       <Flex
         ref={tabNavRef}
         row
