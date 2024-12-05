@@ -1,8 +1,11 @@
 import { InterfaceElementName } from '@uniswap/analytics-events'
 import { TopPoolTable } from 'components/Pools/PoolTable/PoolTable'
-import { TopTokensTable } from 'components/Tokens/TokenTable'
+//import { TopTokensTable } from 'components/Tokens/TokenTable'
+import { useQuery } from '@tanstack/react-query'
+import { TopTokensTable } from 'components/Funds/FundTable'
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
 import { useChainFromUrlParam } from 'constants/chains'
+import { gql, request } from 'graphql-request'
 import RecentTransactions from 'pages/Explore/tables/RecentTransactions'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { StyledInternalLink } from 'theme/components'
@@ -12,25 +15,30 @@ import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { Trans } from 'uniswap/src/i18n'
 import { UniverseChainId } from 'uniswap/src/types/chains'
-
-import { useQuery } from '@tanstack/react-query'
-import { gql, request } from 'graphql-request'
 const query = gql`
   {
-    settings(first: 5) {
+    funds(orderBy: currentUSD, orderDirection: desc, subgraphError: allow) {
       id
-      managerFee
-      minPoolAmount
-      owner
-    }
-    infos(first: 5) {
-      id
-      fundCount
+      createdAtTimestamp
+      manager
       investorCount
-      totalCurrentETH
+      currentUSD
     }
   }
 `
+
+// interface Fund {
+//   id: string;
+//   createdAtTimestamp: string;
+//   manager: string;
+//   investorCount: string;
+//   currentUSD: string;
+// }
+
+// interface TopFunds {
+//   funds: Fund[];
+// }
+
 const url = 'https://api.studio.thegraph.com/query/44946/dotoli/version/latest'
 
 export enum ExploreTab {
@@ -74,6 +82,21 @@ function TestApp() {
       return await request(url, query)
     },
   })
+
+  // const jsonString = JSON.stringify(data ?? {})
+  // const jsonData: TopFunds = JSON.parse(jsonString);
+
+  // if (jsonData.funds) {
+  //   jsonData.funds.forEach((fund: Fund) => {
+  //     console.log("ID:", fund.id);
+  //     console.log("Created At Timestamp:", fund.createdAtTimestamp);
+  //     console.log("Manager:", fund.manager);
+  //     console.log("Investor Count:", fund.investorCount);
+  //     console.log("Current USD:", fund.currentUSD);
+  //     console.log("---------------------");
+  //   });
+  // }
+
   return (
     <main>
       {status === 'pending' ? <div>Loading...</div> : null}
