@@ -4,17 +4,17 @@ on:
     branches:
       - 'main'
 
-# jobs:
-#   deploy-to-prod:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
+jobs:
+  deploy-to-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-#       - name: 🧷️ Get version
-#         uses: juliangruber/read-file-action@02bbba9876a8f870efd4ad64e3b9088d3fb94d4b
-#         id: version
-#         with:
-#           path: VERSION
+      - name: 🧷️ Get version
+        uses: juliangruber/read-file-action@02bbba9876a8f870efd4ad64e3b9088d3fb94d4b
+        id: version
+        with:
+          path: VERSION
 
 #       - name: 🧾️ Get release notes
 #         uses: juliangruber/read-file-action@02bbba9876a8f870efd4ad64e3b9088d3fb94d4b
