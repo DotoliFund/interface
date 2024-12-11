@@ -1,8 +1,8 @@
-# name: "Tag and release"
-# on:
-#   push:
-#     branches:
-#       - 'main'
+name: "Tag and release"
+on:
+  push:
+    branches:
+      - 'main'
 
 # jobs:
 #   deploy-to-prod:
