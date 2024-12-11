@@ -1,30 +1,18 @@
 import { ApolloError } from '@apollo/client'
 import { createColumnHelper } from '@tanstack/react-table'
 import { InterfaceElementName } from '@uniswap/analytics-events'
-import { ParentSize } from '@visx/responsive'
-import SparklineChart from 'components/Charts/SparklineChart'
-import QueryTokenLogo from 'components/Logo/QueryTokenLogo'
 import { Table } from 'components/Table'
 import { Cell } from 'components/Table/Cell'
 import { ClickableHeaderRow, HeaderArrow, HeaderSortText } from 'components/Table/styled'
 import { DeltaArrow, DeltaText } from 'components/Tokens/TokenDetails/Delta'
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
-import {
-  TokenSortMethod,
-  exploreSearchStringAtom,
-  filterTimeAtom,
-  sortAscendingAtom,
-  sortMethodAtom,
-  useSetSortMethod,
-} from 'components/Tokens/state'
+import { TokenSortMethod, sortAscendingAtom, sortMethodAtom, useSetSortMethod } from 'components/Tokens/state'
 import { MouseoverTooltip } from 'components/Tooltip'
-import { chainIdToBackendChain, getChainFromChainUrlParam, useChainFromUrlParam } from 'constants/chains'
-import { NATIVE_CHAIN_ID } from 'constants/tokens'
+import { useChainFromUrlParam } from 'constants/chains'
 import { SparklineMap, TopToken, useTopTokens } from 'graphql/data/TopTokens'
-import { OrderDirection, getSupportedGraphQlChain, getTokenDetailsURL, unwrapToken } from 'graphql/data/util'
+import { OrderDirection, getSupportedGraphQlChain } from 'graphql/data/util'
 import { useAtomValue } from 'jotai/utils'
 import { ReactElement, ReactNode, useMemo } from 'react'
-import { giveExploreStatDefaultValue } from 'state/explore'
 import { useTopTokens as useRestTopTokens } from 'state/explore/topTokens'
 import { TokenStat } from 'state/explore/types'
 import { Flex, Text, styled } from 'ui/src'
@@ -48,17 +36,17 @@ const query = gql`
   }
 `
 
-// interface Fund {
-//   id: string;
-//   createdAtTimestamp: string;
-//   manager: string;
-//   investorCount: string;
-//   currentUSD: string;
-// }
+interface Fund {
+  id: string
+  createdAtTimestamp: string
+  manager: string
+  investorCount: string
+  currentUSD: string
+}
 
-// interface TopFunds {
-//   funds: Fund[];
-// }
+interface TopFunds {
+  funds: Fund[]
+}
 
 const url = 'https://api.studio.thegraph.com/query/44946/dotoli/version/latest'
 
@@ -100,23 +88,7 @@ interface TokenTableValue {
   linkState: { preloadedLogoSrc?: string }
 }
 
-function TokenDescription({ token }: { token: TopToken | TokenStat }) {
-  return (
-    <Flex row gap="$gap8">
-      <QueryTokenLogo token={token} size={28} />
-      <EllipsisText data-testid="token-name">{token?.project?.name ?? token?.name}</EllipsisText>
-      <TokenTableText
-        $platform-web={{
-          minWidth: 'fit-content',
-        }}
-      >
-        {token?.symbol}
-      </TokenTableText>
-    </Flex>
-  )
-}
-
-export function TopTokensTable() {
+export function TopFundsTable() {
   const chain = getSupportedGraphQlChain(useChainFromUrlParam(), { fallbackToEthereum: true })
   const isRestExploreEnabled = useFeatureFlag(FeatureFlags.RestExplore)
   const {
@@ -214,41 +186,7 @@ function TokenTableHeader({
   )
 }
 
-function TestApp() {
-  const { data, status } = useQuery({
-    queryKey: ['data'],
-    async queryFn() {
-      return await request(url, query)
-    },
-  })
-
-  // const jsonString = JSON.stringify(data ?? {})
-  // const jsonData: TopFunds = JSON.parse(jsonString);
-
-  // if (jsonData.funds) {
-  //   jsonData.funds.forEach((fund: Fund) => {
-  //     console.log("ID:", fund.id);
-  //     console.log("Created At Timestamp:", fund.createdAtTimestamp);
-  //     console.log("Manager:", fund.manager);
-  //     console.log("Investor Count:", fund.investorCount);
-  //     console.log("Current USD:", fund.currentUSD);
-  //     console.log("---------------------");
-  //   });
-  // }
-
-  return (
-    <main>
-      {status === 'pending' ? <div>Loading...</div> : null}
-      {status === 'error' ? <div>Error ocurred querying the Subgraph</div> : null}
-      <div>{JSON.stringify(data ?? {})}</div>
-    </main>
-  )
-}
-
 function TokenTable({
-  tokens,
-  tokenSortRank,
-  sparklines,
   loading,
   error,
   loadMore,
@@ -260,86 +198,63 @@ function TokenTable({
   error?: ApolloError | boolean
   loadMore?: ({ onComplete }: { onComplete?: () => void }) => void
 }) {
-  const { formatFiatPrice, formatNumber, formatDelta } = useFormatter()
+  const { formatFiatPrice, formatNumber } = useFormatter()
   const sortAscending = useAtomValue(sortAscendingAtom)
   const orderDirection = sortAscending ? OrderDirection.Asc : OrderDirection.Desc
   const sortMethod = useAtomValue(sortMethodAtom)
-  const filterString = useAtomValue(exploreSearchStringAtom)
-  const timePeriod = useAtomValue(filterTimeAtom)
+
+  const { data } = useQuery({
+    queryKey: ['data'],
+    async queryFn() {
+      return await request(url, query)
+    },
+  })
+
+  const jsonString = JSON.stringify(data ?? {})
+  const jsonData: TopFunds = JSON.parse(jsonString)
 
   const tokenTableValues: TokenTableValue[] | undefined = useMemo(
     () =>
-      tokens?.map((token, i) => {
-        const isGqlToken = !!token && 'id' in token
-        const delta1hr = isGqlToken
-          ? token?.market?.pricePercentChange1Hour?.value
-          : token?.pricePercentChange1Hour?.value
-        const delta1d = isGqlToken ? token?.market?.pricePercentChange1Day?.value : token?.pricePercentChange1Day?.value
-        const tokenSortIndex = tokenSortRank[token?.address ?? NATIVE_CHAIN_ID]
-        const chainId = getChainFromChainUrlParam(token?.chain.toLowerCase())?.id
-        const unwrappedToken = chainId ? unwrapToken(chainId, token) : token
-
+      jsonData.funds?.map((fund, i) => {
         return {
-          index: tokenSortIndex,
-          tokenDescription: <TokenDescription token={unwrappedToken} />,
-          price: isGqlToken ? token?.market?.price?.value ?? 0 : giveExploreStatDefaultValue(token?.price?.value),
-          testId: `token-table-row-${token?.address}`,
+          index: i + 1,
+          tokenDescription: (
+            <Flex row gap="$gap8">
+              <EllipsisText data-testid="fund-id">{fund.id.slice(0, 8)}...</EllipsisText>
+              <TokenTableText>{fund.manager.slice(0, 6)}...</TokenTableText>
+            </Flex>
+          ),
+          price: parseFloat(fund.currentUSD),
+          testId: `fund-table-row-${fund.id}`,
           percentChange1hr: (
             <>
-              <DeltaArrow delta={delta1hr} />
-              <DeltaText delta={delta1hr}>{formatDelta(delta1hr)}</DeltaText>
+              <DeltaArrow delta={0} />
+              <DeltaText delta={0}>0%</DeltaText>
             </>
           ),
           percentChange1d: (
             <>
-              <DeltaArrow delta={delta1d} />
-              <DeltaText delta={delta1d}>{formatDelta(delta1d)}</DeltaText>
+              <DeltaArrow delta={0} />
+              <DeltaText delta={0}>0%</DeltaText>
             </>
           ),
-          fdv: isGqlToken
-            ? token?.project?.markets?.[0]?.fullyDilutedValuation?.value ?? 0
-            : giveExploreStatDefaultValue(token?.fullyDilutedValuation?.value),
-          volume: isGqlToken ? token?.market?.volume?.value ?? 0 : giveExploreStatDefaultValue(token?.volume?.value),
-          sparkline: (
-            <SparklineContainer>
-              <ParentSize>
-                {({ width, height }) =>
-                  sparklines && (
-                    <SparklineChart
-                      width={width}
-                      height={height}
-                      tokenData={token}
-                      pricePercentChange={
-                        isGqlToken ? token?.market?.pricePercentChange?.value : token?.pricePercentChange1Day?.value
-                      }
-                      sparklineMap={sparklines}
-                    />
-                  )
-                }
-              </ParentSize>
-            </SparklineContainer>
-          ),
-          link: getTokenDetailsURL({
-            address: unwrappedToken?.address,
-            chain: chainIdToBackendChain({ chainId, withFallback: true }),
-          }),
+          fdv: parseFloat(fund.currentUSD),
+          volume: parseInt(fund.investorCount),
+          sparkline: <SparklineContainer></SparklineContainer>,
+          link: `/fund/${fund.id}`,
           analytics: {
             elementName: InterfaceElementName.TOKENS_TABLE_ROW,
             properties: {
-              chain_id: chainId,
-              token_address: token?.address,
-              token_symbol: token?.symbol,
-              token_list_index: i,
-              token_list_rank: tokenSortIndex,
-              token_list_length: tokens.length,
-              time_frame: timePeriod,
-              search_token_address_input: filterString,
+              fund_id: fund.id,
+              fund_manager: fund.manager,
+              investor_count: fund.investorCount,
+              current_value: fund.currentUSD,
             },
           },
-          linkState: { preloadedLogoSrc: isGqlToken ? token?.project?.logoUrl : token?.logo },
+          linkState: {},
         }
       }) ?? [],
-    [filterString, formatDelta, sparklines, timePeriod, tokenSortRank, tokens],
+    [jsonData.funds],
   )
 
   const showLoadingSkeleton = loading || !!error
@@ -478,7 +393,6 @@ function TokenTable({
 
   return (
     <>
-      <TestApp />
       <Table
         columns={columns}
         data={tokenTableValues}

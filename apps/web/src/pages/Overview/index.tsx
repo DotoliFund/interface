@@ -2,7 +2,7 @@ import { InterfaceElementName } from '@uniswap/analytics-events'
 import { TopPoolTable } from 'components/Pools/PoolTable/PoolTable'
 //import { TopTokensTable } from 'components/Tokens/TokenTable'
 import { useQuery } from '@tanstack/react-query'
-import { TopTokensTable } from 'components/Funds/FundTable'
+import { TopFundsTable } from 'components/Funds/FundTable'
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
 import { useChainFromUrlParam } from 'constants/chains'
 import { gql, request } from 'graphql-request'
@@ -58,7 +58,7 @@ const Pages: Array<Page> = [
   {
     title: <Trans i18nKey="common.tokens" />,
     key: ExploreTab.Tokens,
-    component: TopTokensTable,
+    component: TopFundsTable,
     loggingElementName: InterfaceElementName.EXPLORE_TOKENS_TAB,
   },
   {
