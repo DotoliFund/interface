@@ -1,4 +1,3 @@
-import { ApolloError } from '@apollo/client'
 import { createColumnHelper } from '@tanstack/react-table'
 import { InterfaceElementName } from '@uniswap/analytics-events'
 import { Table } from 'components/Table'
@@ -8,47 +7,27 @@ import { DeltaArrow, DeltaText } from 'components/Tokens/TokenDetails/Delta'
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
 import { TokenSortMethod, sortAscendingAtom, sortMethodAtom, useSetSortMethod } from 'components/Tokens/state'
 import { MouseoverTooltip } from 'components/Tooltip'
-import { useChainFromUrlParam } from 'constants/chains'
-import { SparklineMap, TopToken, useTopTokens } from 'graphql/data/TopTokens'
-import { OrderDirection, getSupportedGraphQlChain } from 'graphql/data/util'
+import { OrderDirection } from 'graphql/data/util'
 import { useAtomValue } from 'jotai/utils'
+import { Fund } from 'pages/Overview'
 import { ReactElement, ReactNode, useMemo } from 'react'
-import { useTopTokens as useRestTopTokens } from 'state/explore/topTokens'
-import { TokenStat } from 'state/explore/types'
 import { Flex, Text, styled } from 'ui/src'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { Trans } from 'uniswap/src/i18n'
 import { NumberType, useFormatter } from 'utils/formatNumbers'
 
-import { useQuery } from '@tanstack/react-query'
-import { gql, request } from 'graphql-request'
-
-const query = gql`
-  {
-    funds(orderBy: currentUSD, orderDirection: desc, subgraphError: allow) {
-      id
-      createdAtTimestamp
-      manager
-      investorCount
-      currentUSD
-    }
-  }
-`
-
-interface Fund {
-  id: string
-  createdAtTimestamp: string
-  manager: string
-  investorCount: string
-  currentUSD: string
+interface TokenTableValue {
+  index: number
+  tokenDescription: ReactElement
+  price: number
+  percentChange1hr: ReactElement
+  percentChange1d: ReactElement
+  fdv: number
+  volume: number
+  sparkline: ReactElement
+  link: string
+  /** Used for pre-loading TDP with logo to extract color from */
+  linkState: { preloadedLogoSrc?: string }
 }
-
-interface TopFunds {
-  funds: Fund[]
-}
-
-const url = 'https://api.studio.thegraph.com/query/44946/dotoli/version/latest'
 
 const TableWrapper = styled(Flex, {
   m: '0 auto',
@@ -74,77 +53,10 @@ const TokenTableText = styled(Text, {
   maxWidth: '100%',
 })
 
-interface TokenTableValue {
-  index: number
-  tokenDescription: ReactElement
-  price: number
-  percentChange1hr: ReactElement
-  percentChange1d: ReactElement
-  fdv: number
-  volume: number
-  sparkline: ReactElement
-  link: string
-  /** Used for pre-loading TDP with logo to extract color from */
-  linkState: { preloadedLogoSrc?: string }
-}
-
-export function TopFundsTable() {
-  const chain = getSupportedGraphQlChain(useChainFromUrlParam(), { fallbackToEthereum: true })
-  const isRestExploreEnabled = useFeatureFlag(FeatureFlags.RestExplore)
-  const {
-    tokens: gqlTokens,
-    tokenSortRank: gqlTokenSortRank,
-    loadingTokens: gqlLoadingTokens,
-    sparklines: gqlSparklines,
-    error: gqlError,
-  } = useTopTokens(chain.backendChain.chain, isRestExploreEnabled /* skip */)
-  const {
-    topTokens: restTopTokens,
-    tokenSortRank: restTokenSortRank,
-    isLoading: restIsLoading,
-    sparklines: restSparklines,
-    isError: restError,
-  } = useRestTopTokens()
-
-  const { tokens, tokenSortRank, sparklines, loading, error } = useMemo(() => {
-    return isRestExploreEnabled
-      ? {
-          tokens: restTopTokens,
-          tokenSortRank: restTokenSortRank,
-          loading: restIsLoading,
-          sparklines: restSparklines,
-          error: restError,
-        }
-      : {
-          tokens: gqlTokens,
-          tokenSortRank: gqlTokenSortRank,
-          loading: gqlLoadingTokens,
-          sparklines: gqlSparklines,
-          error: gqlError,
-        }
-  }, [
-    isRestExploreEnabled,
-    restTopTokens,
-    restTokenSortRank,
-    restIsLoading,
-    restSparklines,
-    restError,
-    gqlTokens,
-    gqlTokenSortRank,
-    gqlLoadingTokens,
-    gqlSparklines,
-    gqlError,
-  ])
-
+export function TopFundsTable({ funds }: { funds: Fund[] }) {
   return (
     <TableWrapper data-testid="top-tokens-explore-table">
-      <TokenTable
-        tokens={tokens}
-        tokenSortRank={tokenSortRank}
-        sparklines={sparklines}
-        loading={loading}
-        error={error}
-      />
+      <FundTable funds={funds} loading={funds ? false : true} />
     </TableWrapper>
   )
 }
@@ -186,16 +98,13 @@ function TokenTableHeader({
   )
 }
 
-function TokenTable({
+function FundTable({
+  funds,
   loading,
-  error,
   loadMore,
 }: {
-  tokens?: readonly TopToken[] | TokenStat[]
-  tokenSortRank: Record<string, number>
-  sparklines: SparklineMap
+  funds?: readonly Fund[]
   loading: boolean
-  error?: ApolloError | boolean
   loadMore?: ({ onComplete }: { onComplete?: () => void }) => void
 }) {
   const { formatFiatPrice, formatNumber } = useFormatter()
@@ -203,19 +112,9 @@ function TokenTable({
   const orderDirection = sortAscending ? OrderDirection.Asc : OrderDirection.Desc
   const sortMethod = useAtomValue(sortMethodAtom)
 
-  const { data } = useQuery({
-    queryKey: ['data'],
-    async queryFn() {
-      return await request(url, query)
-    },
-  })
-
-  const jsonString = JSON.stringify(data ?? {})
-  const jsonData: TopFunds = JSON.parse(jsonString)
-
-  const tokenTableValues: TokenTableValue[] | undefined = useMemo(
+  const tokenTableValues = useMemo(
     () =>
-      jsonData.funds?.map((fund, i) => {
+      funds?.map((fund, i) => {
         return {
           index: i + 1,
           tokenDescription: (
@@ -254,10 +153,10 @@ function TokenTable({
           linkState: {},
         }
       }) ?? [],
-    [jsonData.funds],
+    [funds],
   )
 
-  const showLoadingSkeleton = loading || !!error
+  const showLoadingSkeleton = loading
   const columns = useMemo(() => {
     const columnHelper = createColumnHelper<TokenTableValue>()
     return [
@@ -397,7 +296,7 @@ function TokenTable({
         columns={columns}
         data={tokenTableValues}
         loading={loading}
-        error={error}
+        error={false}
         loadMore={loadMore}
         maxWidth={1200}
       />
