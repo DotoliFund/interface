@@ -1,55 +1,46 @@
-# Uniswap Labs: Front End Interfaces
+# Dotoli Interface
 
-An open source repository for all Uniswap front end interfaces maintained by Uniswap Labs. Uniswap is a protocol for decentralized exchange of Ethereum tokens.
+This repository contains the interface for the Dotoli Protocol.
 
-## Interfaces
+Introducing Dotoli, based on ERC-20, a decentralized fund management
+protocol for managing and investing in cryptocurrency assets. You can manage
+token assets while swapping Ethereum-based ERC-20 token assets using the
+Uniswap V3 contract.
 
-- Web: [app.uniswap.org](https://app.uniswap.org)
-- Wallet (mobile + extension): [wallet.uniswap.org](https://wallet.uniswap.org)
+## Fund
+ All deposits, withdrawals and swap information of both fund managers and investors
+are stored transparently in the Ethereum blockchain, which is advantageous to both fund
+managers and investors.
 
-## Socials / Contact
+## Manager
+ If all fund operations are transparently and completely recorded on the blockchain, the
+fund manager's asset management portfolio cannot be forged or modified. The
+advantage of this is that if the fund manager himself has a high investment return rate,
+his investment activities so far become his portfolio, and a portfolio with good
+performance is good information for investors who need a competent fund manager. In
+addition, since fund managers do not work as employees of existing financial
+companies, they can independently grow and manage their assets without restrictions.
 
-- Twitter: [@Uniswap](https://twitter.com/Uniswap)
-- Reddit: [/r/Uniswap](https://www.reddit.com/r/Uniswap/)
-- Email: [contact@uniswap.org](mailto:contact@uniswap.org)
-- Discord: [Uniswap](https://discord.gg/FCfyBSbCU5)
 
-## Uniswap Links
+## Investor
+ Since the fund is operated only according to the rules of the Dotoli contract of the
+Ethereum blockchain, which is close to decentralization, it is safe from malicious
+actions by third parties. For example, if investor B deposits cryptocurrency into a fund
+created by fund manager A, only the investor can withdraw. Fund managers can only
+swap deposited assets or add/remove them to the Uniswap pool.
 
-- Website: [uniswap.org](https://uniswap.org/)
-- Docs: [uniswap.org/docs/](https://docs.uniswap.org/)
+## Decentralized Fund Manage System
 
-## Whitepapers
+![image](https://github.com/DotoliFund/interface/assets/109557159/9f1b0911-0945-4831-9711-33c06313b978)
 
-- [V3](https://uniswap.org/whitepaper-v3.pdf)
-- [V2](https://uniswap.org/whitepaper.pdf)
-- [V1](https://hackmd.io/C-DvwDSfSxuh-Gd4WKE_ig)
 
-## Apps
+## WhitePaper
 
-For instructions per application or package, see the README published for each application:
+  https://dotoli.org/whitepaper.pdf
 
-- [Web](apps/web/README.md)
-- [Mobile](apps/mobile/README.md)
-- [Extension](apps/extension/README.md)
+## Licensing
 
-## Releases
-
-All interface releases are tagged and published to this repository. To browse them easily, see the [Github releases tab](https://github.com/Uniswap/interface/releases).
-
-## Translations
-
-Translations for our applications are done through [crowdin](https://crowdin.com).
-
-| App     | Coverage |
-| ------- | -------- |
-| web     | [![Crowdin](https://badges.crowdin.net/uniswap-interface/localized.svg)](https://crowdin.com/project/uniswap-interface) |
-| wallet  | [![Crowdin](https://badges.crowdin.net/uniswap-wallet/localized.svg)](https://crowdin.com/project/uniswap-wallet) |
-
-## 🗂 Directory Structure
-
-| Folder      | Contents                                                                       |
-| ----------- | ------------------------------------------------------------------------------ |
-| `apps/`     | The home for each standalone application.                                      |
-| `config/`   | Shared infrastructure packages and configurations.                             |
-| `packages/` | Shared code packages covering UI, shared functionality, and shared utilities.  |
+Inspired by Uniswap Interface
+```
+GPL-2.0-or-later
+```
