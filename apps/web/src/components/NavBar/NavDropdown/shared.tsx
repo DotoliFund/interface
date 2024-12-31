@@ -14,9 +14,3 @@ export const NavDropdownDefaultWrapper = styled(Column)`
     border-bottom: none;
   }
 `
-export const NavDropdownTabWrapper = styled(Column)`
-  min-width: 180px;
-  padding: 4px;
-  gap: 4px;
-  position: relative;
-`
