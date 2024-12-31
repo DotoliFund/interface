@@ -9,25 +9,11 @@ import { TokenSortMethod, sortAscendingAtom, sortMethodAtom, useSetSortMethod } 
 import { MouseoverTooltip } from 'components/Tooltip'
 import { OrderDirection } from 'graphql/data/util'
 import { useAtomValue } from 'jotai/utils'
-import { Fund } from 'pages/Overview'
+import { WhiteList } from 'pages/Overview'
 import { ReactElement, ReactNode, useMemo } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { Trans } from 'uniswap/src/i18n'
 import { NumberType, useFormatter } from 'utils/formatNumbers'
-
-interface TokenTableValue {
-  index: number
-  tokenDescription: ReactElement
-  price: number
-  percentChange1hr: ReactElement
-  percentChange1d: ReactElement
-  fdv: number
-  volume: number
-  sparkline: ReactElement
-  link: string
-  /** Used for pre-loading TDP with logo to extract color from */
-  linkState: { preloadedLogoSrc?: string }
-}
 
 const TableWrapper = styled(Flex, {
   m: '0 auto',
@@ -53,10 +39,24 @@ const TokenTableText = styled(Text, {
   maxWidth: '100%',
 })
 
-export function TopFundsTable({ funds }: { funds: Fund[] }) {
+interface TokenTableValue {
+  index: number
+  tokenDescription: ReactElement
+  price: number
+  percentChange1hr: ReactElement
+  percentChange1d: ReactElement
+  fdv: number
+  volume: number
+  sparkline: ReactElement
+  link: string
+  /** Used for pre-loading TDP with logo to extract color from */
+  linkState: { preloadedLogoSrc?: string }
+}
+
+export function WhiteListsTable({ whiteLists }: { whiteLists: WhiteList[] }) {
   return (
     <TableWrapper data-testid="top-tokens-explore-table">
-      <FundTable funds={funds} loading={funds ? false : true} />
+      <TokenTable tokens={whiteLists} loading={!whiteLists} />
     </TableWrapper>
   )
 }
@@ -98,12 +98,12 @@ function TokenTableHeader({
   )
 }
 
-function FundTable({
-  funds,
+function TokenTable({
+  tokens,
   loading,
   loadMore,
 }: {
-  funds?: readonly Fund[]
+  tokens?: readonly WhiteList[]
   loading: boolean
   loadMore?: ({ onComplete }: { onComplete?: () => void }) => void
 }) {
@@ -112,19 +112,19 @@ function FundTable({
   const orderDirection = sortAscending ? OrderDirection.Asc : OrderDirection.Desc
   const sortMethod = useAtomValue(sortMethodAtom)
 
-  const tokenTableValues = useMemo(
+  const tokenTableValues: TokenTableValue[] | undefined = useMemo(
     () =>
-      funds?.map((fund, i) => {
+      tokens?.map((token, i) => {
         return {
           index: i + 1,
           tokenDescription: (
             <Flex row gap="$gap8">
-              <EllipsisText data-testid="fund-id">{fund.id.slice(0, 8)}...</EllipsisText>
-              <TokenTableText>{fund.manager.slice(0, 6)}...</TokenTableText>
+              <EllipsisText data-testid="fund-id">{token.id}...</EllipsisText>
+              <TokenTableText>{token.address}...</TokenTableText>
             </Flex>
           ),
-          price: parseFloat(fund.currentUSD),
-          testId: `fund-table-row-${fund.id}`,
+          price: parseInt('0'),
+          testId: `fund-table-row-${token.address}`,
           percentChange1hr: (
             <>
               <DeltaArrow delta={0} />
@@ -137,23 +137,23 @@ function FundTable({
               <DeltaText delta={0}>0%</DeltaText>
             </>
           ),
-          fdv: parseFloat(fund.currentUSD),
-          volume: parseInt(fund.investorCount),
+          fdv: parseInt('0'),
+          volume: parseInt('0'),
           sparkline: <SparklineContainer></SparklineContainer>,
-          link: `/fund/${fund.id}`,
+          link: `/fund/${token.id}`,
           analytics: {
             elementName: InterfaceElementName.TOKENS_TABLE_ROW,
             properties: {
-              fund_id: fund.id,
-              fund_manager: fund.manager,
-              investor_count: fund.investorCount,
-              current_value: fund.currentUSD,
+              fund_id: token.id,
+              fund_manager: token.address,
+              investor_count: token.symbol,
+              current_value: token.updatedTimestamp,
             },
           },
           linkState: {},
         }
       }) ?? [],
-    [funds],
+    [tokens],
   )
 
   const showLoadingSkeleton = loading
@@ -294,9 +294,9 @@ function FundTable({
     <>
       <Table
         columns={columns}
-        data={tokenTableValues}
+        data={tokenTableValues ?? []}
         loading={loading}
-        error={false}
+        error={undefined}
         loadMore={loadMore}
         maxWidth={1200}
       />
