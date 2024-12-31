@@ -31,7 +31,7 @@ swap deposited assets or add/remove them to the Uniswap pool.
 
 ## Decentralized Fund Manage System
 
-![image](https://github.com/DotoliFund/interface/assets/109557159/9f1b0911-0945-4831-9711-33c06313b978)
+![image](https://github.com/user-attachments/assets/2fc4c3a0-65cf-48f3-b08c-886abd7efa6f)
 
 
 ## WhitePaper
