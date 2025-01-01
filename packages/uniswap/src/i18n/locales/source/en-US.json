@@ -950,6 +950,7 @@
   "liquidityPool.positions.page.version.title": "Manage pool liquidity{{version}} on Uniswap",
   "liquidityPool.positions.price": "{{amountWithSymbol}} per {{outputToken}}",
   "liquidityPool.positions.price.formatted": "<amountWithSymbol /> per <outputToken />",
+  "myaccount.title": "My Account",
   "migrate.allowed": "Allowed",
   "migrate.allowLpMigration": "Allow LP token migration",
   "migrate.connectAccount": "You must connect an account.",
