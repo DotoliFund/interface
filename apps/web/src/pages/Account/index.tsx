@@ -2,24 +2,22 @@ import { InterfaceElementName, InterfaceEventName, InterfacePageName } from '@un
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ButtonPrimary, ButtonText } from 'components/Button'
 import { AutoColumn } from 'components/Column'
-import { DropdownSelector } from 'components/DropdownSelector'
-import PositionList from 'components/PositionList'
+import FundList from 'components/FundList'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { useIsSupportedChainId } from 'constants/chains'
 import { useAccount } from 'hooks/useAccount'
 import { useFilterPossiblyMaliciousPositions } from 'hooks/useFilterPossiblyMaliciousPositions'
-import { useNetworkSupportsV2 } from 'hooks/useNetworkSupportsV2'
 import { useV3Positions } from 'hooks/useV3Positions'
 import deprecatedStyled, { css, useTheme } from 'lib/styled-components'
 import CTACards from 'pages/Account/CTACards'
 import { LoadingRows } from 'pages/Account/styled'
-import { useMemo, useState } from 'react'
-import { AlertTriangle, BookOpen, ChevronsRight, Inbox, Layers } from 'react-feather'
+import { useMemo } from 'react'
+import { AlertTriangle, Inbox } from 'react-feather'
 import { Link } from 'react-router-dom'
 import { useUserHideClosedPositions } from 'state/user/hooks'
 import { HideSmall, ThemedText } from 'theme/components'
 import { PositionDetails } from 'types/position'
-import { Anchor, Flex, Text, styled } from 'ui/src'
+import { Flex, Text } from 'ui/src'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { t, useTranslation } from 'uniswap/src/i18n'
 
@@ -38,21 +36,6 @@ const PageWrapper = deprecatedStyled(AutoColumn)`
     padding-top: 20px;
   }
 `
-
-const AccountMenuItem = styled(Anchor, {
-  display: 'flex',
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  width: '100%',
-  fontWeight: '$book',
-  p: '$spacing8',
-  textDecorationLine: 'none',
-  color: '$neutral2',
-  hoverStyle: {
-    color: '$neutral1',
-  },
-})
 
 const ErrorContainer = deprecatedStyled.div`
   align-items: center;
@@ -147,9 +130,7 @@ export default function Account() {
   const { t } = useTranslation()
   const account = useAccount()
   const isSupportedChain = useIsSupportedChainId(account.chainId)
-  const networkSupportsV2 = useNetworkSupportsV2()
   const accountDrawer = useAccountDrawer()
-  const [isMenuOpen, toggleMenu] = useState(false)
 
   const theme = useTheme()
   const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
@@ -177,24 +158,6 @@ export default function Account() {
 
   const showConnectAWallet = Boolean(!account)
 
-  const menuItems = [
-    <AccountMenuItem href="/migrate/v2" key="migrate">
-      {t('common.migrate')}
-      <ChevronsRight size={16} />
-    </AccountMenuItem>,
-    <AccountMenuItem href="/pools/v2" key="v2-liquidity">
-      {t('pool.v2liquidity')}
-      <Layers size={16} />
-    </AccountMenuItem>,
-    <AccountMenuItem
-      href="https://support.uniswap.org/hc/en-us/categories/8122334631437-Providing-Liquidity-"
-      key="learn"
-    >
-      {t('pool.learn')}
-      <BookOpen size={16} />
-    </AccountMenuItem>,
-  ]
-
   return (
     <Trace logImpression page={InterfacePageName.POOL_PAGE}>
       <PageWrapper>
@@ -212,19 +175,6 @@ export default function Account() {
                 <Text variant="heading2">{t('myaccount.title')}</Text>
               </Flex>
               <Flex row gap="8px" $md={{ width: '100%' }}>
-                {networkSupportsV2 && (
-                  <Flex grow $md={{ width: 'calc(50% - 4px)' }}>
-                    <DropdownSelector
-                      isOpen={isMenuOpen}
-                      toggleOpen={toggleMenu}
-                      menuLabel={<>{t('common.more')}</>}
-                      internalMenuItems={<>{...menuItems}</>}
-                      buttonStyle={{ height: 40, justifyContent: 'center' }}
-                      dropdownStyle={{ width: 200, top: 'calc(100% + 20px)' }}
-                      adaptToSheet={false}
-                    />
-                  </Flex>
-                )}
                 <ResponsiveButtonPrimary data-cy="join-pool-button" id="join-pool-button" as={Link} to="/add/ETH">
                   {t('pool.newPosition.plus')}
                 </ResponsiveButtonPrimary>
@@ -235,7 +185,7 @@ export default function Account() {
               {positionsLoading ? (
                 <PositionsLoadingPlaceholder />
               ) : filteredPositions && closedPositions && filteredPositions.length > 0 ? (
-                <PositionList
+                <FundList
                   positions={filteredPositions}
                   setUserHideClosedPositions={setUserHideClosedPositions}
                   userHideClosedPositions={userHideClosedPositions}
