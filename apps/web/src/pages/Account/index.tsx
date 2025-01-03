@@ -1,5 +1,4 @@
 import { InterfaceElementName, InterfaceEventName, InterfacePageName } from '@uniswap/analytics-events'
-import { useWeb3React } from '@web3-react/core'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ButtonPrimary, ButtonText } from 'components/Button'
 import { AutoColumn } from 'components/Column'
@@ -9,6 +8,7 @@ import { useIsSupportedChainId } from 'constants/chains'
 import { FundDetails } from 'dotoli/src/types/fund'
 import { useAccount } from 'hooks/useAccount'
 import { useDotoliInfoContract } from 'hooks/useContract'
+import { useEthersWeb3Provider } from 'hooks/useEthersProvider'
 import { useFilterPossiblyMaliciousPositions } from 'hooks/useFilterPossiblyMaliciousPositions'
 import { useV3Positions } from 'hooks/useV3Positions'
 import JSBI from 'jsbi'
@@ -133,7 +133,7 @@ function WrongNetworkCard() {
 
 export default function Account() {
   const { t } = useTranslation()
-  const { provider } = useWeb3React()
+  const provider = useEthersWeb3Provider()
   const account = useAccount()
   const isSupportedChain = useIsSupportedChainId(account.chainId)
   const accountDrawer = useAccountDrawer()
@@ -158,7 +158,7 @@ export default function Account() {
       setManagingFundInfoLoading(false)
     }
     async function getInfo() {
-      if (managingFund && JSBI.BigInt(managingFund).toString() !== '0' && provider && account.address) {
+      if (managingFund && JSBI.BigInt(managingFund).toString() !== '0' && provider?.provider && account.address) {
         setManagingFundInfo([
           {
             fundId: JSBI.BigInt(managingFund).toString(),
