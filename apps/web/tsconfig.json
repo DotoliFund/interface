@@ -41,6 +41,9 @@
     },
     {
       "path": "../../packages/uniswap"
+    },
+    {
+      "path": "../../packages/dotoli"
     }
   ]
 }

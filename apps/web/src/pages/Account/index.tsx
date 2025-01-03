@@ -1,17 +1,22 @@
 import { InterfaceElementName, InterfaceEventName, InterfacePageName } from '@uniswap/analytics-events'
+import { useWeb3React } from '@web3-react/core'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ButtonPrimary, ButtonText } from 'components/Button'
 import { AutoColumn } from 'components/Column'
 import FundList from 'components/FundList'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { useIsSupportedChainId } from 'constants/chains'
+import { FundDetails } from 'dotoli/src/types/fund'
 import { useAccount } from 'hooks/useAccount'
+import { useDotoliInfoContract } from 'hooks/useContract'
 import { useFilterPossiblyMaliciousPositions } from 'hooks/useFilterPossiblyMaliciousPositions'
 import { useV3Positions } from 'hooks/useV3Positions'
+import JSBI from 'jsbi'
+import { useSingleCallResult } from 'lib/hooks/multicall'
 import deprecatedStyled, { css, useTheme } from 'lib/styled-components'
 import CTACards from 'pages/Account/CTACards'
 import { LoadingRows } from 'pages/Account/styled'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, Inbox } from 'react-feather'
 import { Link } from 'react-router-dom'
 import { useUserHideClosedPositions } from 'state/user/hooks'
@@ -128,15 +133,46 @@ function WrongNetworkCard() {
 
 export default function Account() {
   const { t } = useTranslation()
+  const { provider } = useWeb3React()
   const account = useAccount()
   const isSupportedChain = useIsSupportedChainId(account.chainId)
   const accountDrawer = useAccountDrawer()
 
   const theme = useTheme()
+
+  const DotoliInfoContract = useDotoliInfoContract()
+  const { loading: managingFundLoading, result: [managingFund] = [] } = useSingleCallResult(
+    DotoliInfoContract,
+    'managingFund',
+    [account.address ?? undefined],
+  )
+
+  const [managingFundInfo, setManagingFundInfo] = useState<FundDetails[]>()
+  const [managingFundInfoLoading, setManagingFundInfoLoading] = useState(false)
+  useEffect(() => {
+    if (managingFundLoading) {
+      setManagingFundInfoLoading(true)
+    }
+    if (!managingFundLoading) {
+      getInfo()
+      setManagingFundInfoLoading(false)
+    }
+    async function getInfo() {
+      if (managingFund && JSBI.BigInt(managingFund).toString() !== '0' && provider && account.address) {
+        setManagingFundInfo([
+          {
+            fundId: JSBI.BigInt(managingFund).toString(),
+            investor: account.address ?? '',
+          },
+        ])
+      } else {
+        setManagingFundInfo(undefined)
+      }
+    }
+  }, [managingFundLoading, managingFund, provider, account.address])
+
   const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
-
   const { positions, loading: positionsLoading } = useV3Positions(account.address)
-
   const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
     (acc, p) => {
       acc[p.liquidity?.isZero() ? 1 : 0].push(p)
@@ -156,7 +192,7 @@ export default function Account() {
     return <WrongNetworkCard />
   }
 
-  const showConnectAWallet = Boolean(!account)
+  const showConnectAWallet = !account
 
   return (
     <Trace logImpression page={InterfacePageName.POOL_PAGE}>
@@ -185,11 +221,18 @@ export default function Account() {
               {positionsLoading ? (
                 <PositionsLoadingPlaceholder />
               ) : filteredPositions && closedPositions && filteredPositions.length > 0 ? (
-                <FundList
-                  positions={filteredPositions}
-                  setUserHideClosedPositions={setUserHideClosedPositions}
-                  userHideClosedPositions={userHideClosedPositions}
-                />
+                <>
+                  <FundList
+                    positions={filteredPositions}
+                    setUserHideClosedPositions={setUserHideClosedPositions}
+                    userHideClosedPositions={userHideClosedPositions}
+                  />
+                  <div>
+                    {managingFundInfo && !managingFundInfoLoading && managingFundInfo.length > 0
+                      ? managingFundInfo?.[0].investor.toString()
+                      : 'test123'}
+                  </div>
+                </>
               ) : (
                 <ErrorContainer>
                   <ThemedText.BodyPrimary color={theme.neutral3} textAlign="center">

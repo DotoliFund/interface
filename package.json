@@ -137,6 +137,7 @@
     "wallet": "yarn workspace wallet",
     "web": "yarn workspace @uniswap/interface",
     "uniswap": "yarn workspace uniswap",
+    "dotoli": "yarn workspace dotoli",
     "utilities": "yarn workspace utilities"
   },
   "workspaces": [
