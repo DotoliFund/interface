@@ -1,4 +1,3 @@
-import { InterfacePageName } from '@uniswap/analytics-events'
 import { useWeb3React } from '@web3-react/core'
 // import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ButtonPrimary } from 'components/Button'
@@ -13,14 +12,14 @@ import { useDotoliInfoContract } from 'hooks/useContract'
 // import { useV3Positions } from 'hooks/useV3Positions'
 import JSBI from 'jsbi'
 import { useSingleCallResult } from 'lib/hooks/multicall'
-import deprecatedStyled, { css } from 'lib/styled-components'
+import deprecatedStyled, { css, useTheme } from 'lib/styled-components'
 import CTACards from 'pages/Account/CTACards'
-// import { LoadingRows } from 'pages/Account/styled'
+import { LoadingRows } from 'pages/Account/styled'
 import { useEffect, useState } from 'react'
-import { AlertTriangle } from 'react-feather'
+import { AlertTriangle, Inbox } from 'react-feather'
 import { Link } from 'react-router-dom'
 // import { useUserHideClosedPositions } from 'state/user/hooks'
-import { HideSmall } from 'theme/components'
+import { HideSmall, ThemedText } from 'theme/components'
 // import { PositionDetails } from 'types/position'
 import { Flex, Text } from 'ui/src'
 import Trace from 'uniswap/src/features/telemetry/Trace'
@@ -62,9 +61,9 @@ const NetworkIcon = deprecatedStyled(AlertTriangle)`
   ${IconStyle}
 `
 
-// const InboxIcon = deprecatedStyled(Inbox)`
-//   ${IconStyle}
-// `
+const InboxIcon = deprecatedStyled(Inbox)`
+  ${IconStyle}
+`
 
 const ResponsiveButtonPrimary = deprecatedStyled(ButtonPrimary)`
   border-radius: 12px;
@@ -87,24 +86,24 @@ const MainContentWrapper = deprecatedStyled.main`
   overflow: hidden;
 `
 
-// function PositionsLoadingPlaceholder() {
-//   return (
-//     <LoadingRows>
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//     </LoadingRows>
-//   )
-// }
+function FundsLoadingPlaceholder() {
+  return (
+    <LoadingRows>
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+    </LoadingRows>
+  )
+}
 
 function WrongNetworkCard() {
   return (
@@ -138,7 +137,7 @@ export default function Account() {
   const isSupportedChain = useIsSupportedChainId(account.chainId)
   // const accountDrawer = useAccountDrawer()
 
-  // const theme = useTheme()
+  const theme = useTheme()
 
   const DotoliInfoContract = useDotoliInfoContract()
   const { loading: managingFundLoading, result: [managingFund] = [] } = useSingleCallResult(
@@ -171,6 +170,49 @@ export default function Account() {
     }
   }, [managingFundLoading, managingFund, provider, account.address])
 
+  const { loading: investingFundsLoading, result: [investingFunds] = [] } = useSingleCallResult(
+    DotoliInfoContract,
+    'subscribedFunds',
+    [account.address ?? undefined],
+  )
+
+  const [investingFundsInfo, setInvestingFundsInfo] = useState<FundDetails[]>()
+  const [investingFundsInfoLoading, setInvestingFundsInfoLoading] = useState(false)
+  useEffect(() => {
+    if (investingFundsLoading) {
+      setInvestingFundsInfoLoading(true)
+    }
+    if (!investingFundsLoading) {
+      getInfo()
+      setInvestingFundsInfoLoading(false)
+    }
+    async function getInfo() {
+      if (investingFunds && investingFunds.length > 0 && provider && account) {
+        const investingFundList = investingFunds
+        const investingFundsInfoList: FundDetails[] = []
+
+        for (let i = 0; i < investingFundList.length; i++) {
+          const investingFund: string = investingFundList[i]
+          if (JSBI.BigInt(investingFund).toString() === JSBI.BigInt(managingFund).toString()) {
+            continue
+          }
+          const investingFundsInfo: FundDetails = {
+            fundId: JSBI.BigInt(investingFund).toString(),
+            investor: account.address ?? '',
+          }
+          investingFundsInfoList.push(investingFundsInfo)
+        }
+        if (investingFundsInfoList.length === 0) {
+          setInvestingFundsInfo(undefined)
+        } else {
+          setInvestingFundsInfo(investingFundsInfoList)
+        }
+      } else {
+        setInvestingFundsInfo(undefined)
+      }
+    }
+  }, [investingFundsLoading, managingFund, investingFunds, provider, account])
+
   // const [userHideClosedPositions] = useUserHideClosedPositions()
   // const { positions } = useV3Positions(account.address)
   // const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
@@ -192,10 +234,10 @@ export default function Account() {
     return <WrongNetworkCard />
   }
 
-  //const showConnectAWallet = !account
+  // const showConnectAWallet = !account
 
   return (
-    <Trace logImpression page={InterfacePageName.POOL_PAGE}>
+    <Trace>
       <PageWrapper>
         <AutoColumn gap="lg" justify="center">
           <AutoColumn gap="lg" style={{ width: '100%' }}>
@@ -218,20 +260,20 @@ export default function Account() {
             </Flex>
 
             <MainContentWrapper>
-              <div>
+              {/* <div>
                 {managingFundInfo && !managingFundInfoLoading && managingFundInfo.length > 0
                   ? managingFundInfo?.[0].investor.toString()
                   : 'test123'}
-              </div>
-              {/* {positionsLoading ? (
-                <PositionsLoadingPlaceholder />
-              ) : filteredPositions && closedPositions && filteredPositions.length > 0 ? (
+              </div> */}
+              {managingFundLoading || managingFundInfoLoading ? (
+                <FundsLoadingPlaceholder />
+              ) : managingFundInfo && managingFundInfo.length > 0 ? (
                 <>
-                  <FundList
+                  {/* <FundList
                     positions={filteredPositions}
                     setUserHideClosedPositions={setUserHideClosedPositions}
                     userHideClosedPositions={userHideClosedPositions}
-                  />
+                  /> */}
                   <div>
                     {managingFundInfo && !managingFundInfoLoading && managingFundInfo.length > 0
                       ? managingFundInfo?.[0].investor.toString()
@@ -244,7 +286,7 @@ export default function Account() {
                     <InboxIcon strokeWidth={1} style={{ marginTop: '2em' }} />
                     <div>{t('pool.activePositions.appear')}</div>
                   </ThemedText.BodyPrimary>
-                  {!showConnectAWallet && closedPositions.length > 0 && (
+                  {/* {!showConnectAWallet && closedPositions.length > 0 && (
                     <ButtonText
                       style={{ marginTop: '.5rem' }}
                       onClick={() => setUserHideClosedPositions(!userHideClosedPositions)}
@@ -266,9 +308,34 @@ export default function Account() {
                         {t('common.connectAWallet.button')}
                       </ButtonPrimary>
                     </Trace>
-                  )}
+                  )} */}
                 </ErrorContainer>
-              )} */}
+              )}
+            </MainContentWrapper>
+            <MainContentWrapper>
+              {investingFundsLoading || investingFundsInfoLoading ? (
+                <FundsLoadingPlaceholder />
+              ) : investingFundsInfo && investingFundsInfo.length > 0 ? (
+                <>
+                  {/* <FundList
+                    positions={filteredPositions}
+                    setUserHideClosedPositions={setUserHideClosedPositions}
+                    userHideClosedPositions={userHideClosedPositions}
+                  /> */}
+                  <div>
+                    {investingFundsInfo && !investingFundsInfoLoading && investingFundsInfo.length > 0
+                      ? investingFundsInfo?.[0].investor.toString()
+                      : '123test'}
+                  </div>
+                </>
+              ) : (
+                <ErrorContainer>
+                  <ThemedText.BodyPrimary color={theme.neutral3} textAlign="center">
+                    <InboxIcon strokeWidth={1} style={{ marginTop: '2em' }} />
+                    <div>{t('pool.activePositions.appear')}</div>
+                  </ThemedText.BodyPrimary>
+                </ErrorContainer>
+              )}
             </MainContentWrapper>
             <HideSmall>
               <CTACards />
