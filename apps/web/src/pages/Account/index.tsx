@@ -1,27 +1,27 @@
-import { InterfacePageName } from '@uniswap/analytics-events'
+import { InterfaceElementName, InterfaceEventName, InterfacePageName } from '@uniswap/analytics-events'
 import { useWeb3React } from '@web3-react/core'
-// import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
-import { ButtonPrimary } from 'components/Button'
+import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { ButtonPrimary, ButtonText } from 'components/Button'
 import { AutoColumn } from 'components/Column'
-// import FundList from 'components/FundList'
+import FundList from 'components/FundList'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { useIsSupportedChainId } from 'constants/chains'
 import { FundDetails } from 'dotoli/src/types/fund'
 import { useAccount } from 'hooks/useAccount'
 import { useDotoliInfoContract } from 'hooks/useContract'
-// import { useFilterPossiblyMaliciousPositions } from 'hooks/useFilterPossiblyMaliciousPositions'
-// import { useV3Positions } from 'hooks/useV3Positions'
+import { useFilterPossiblyMaliciousPositions } from 'hooks/useFilterPossiblyMaliciousPositions'
+import { useV3Positions } from 'hooks/useV3Positions'
 import JSBI from 'jsbi'
 import { useSingleCallResult } from 'lib/hooks/multicall'
-import deprecatedStyled, { css } from 'lib/styled-components'
+import deprecatedStyled, { css, useTheme } from 'lib/styled-components'
 import CTACards from 'pages/Account/CTACards'
-// import { LoadingRows } from 'pages/Account/styled'
-import { useEffect, useState } from 'react'
-import { AlertTriangle } from 'react-feather'
+import { LoadingRows } from 'pages/Account/styled'
+import { useEffect, useMemo, useState } from 'react'
+import { AlertTriangle, Inbox } from 'react-feather'
 import { Link } from 'react-router-dom'
-// import { useUserHideClosedPositions } from 'state/user/hooks'
-import { HideSmall } from 'theme/components'
-// import { PositionDetails } from 'types/position'
+import { useUserHideClosedPositions } from 'state/user/hooks'
+import { HideSmall, ThemedText } from 'theme/components'
+import { PositionDetails } from 'types/position'
 import { Flex, Text } from 'ui/src'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { t, useTranslation } from 'uniswap/src/i18n'
@@ -62,9 +62,9 @@ const NetworkIcon = deprecatedStyled(AlertTriangle)`
   ${IconStyle}
 `
 
-// const InboxIcon = deprecatedStyled(Inbox)`
-//   ${IconStyle}
-// `
+const InboxIcon = deprecatedStyled(Inbox)`
+  ${IconStyle}
+`
 
 const ResponsiveButtonPrimary = deprecatedStyled(ButtonPrimary)`
   border-radius: 12px;
@@ -87,24 +87,24 @@ const MainContentWrapper = deprecatedStyled.main`
   overflow: hidden;
 `
 
-// function PositionsLoadingPlaceholder() {
-//   return (
-//     <LoadingRows>
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//       <div />
-//     </LoadingRows>
-//   )
-// }
+function PositionsLoadingPlaceholder() {
+  return (
+    <LoadingRows>
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+    </LoadingRows>
+  )
+}
 
 function WrongNetworkCard() {
   return (
@@ -136,9 +136,9 @@ export default function Account() {
   const { provider } = useWeb3React()
   const account = useAccount()
   const isSupportedChain = useIsSupportedChainId(account.chainId)
-  // const accountDrawer = useAccountDrawer()
+  const accountDrawer = useAccountDrawer()
 
-  // const theme = useTheme()
+  const theme = useTheme()
 
   const DotoliInfoContract = useDotoliInfoContract()
   const { loading: managingFundLoading, result: [managingFund] = [] } = useSingleCallResult(
@@ -171,28 +171,28 @@ export default function Account() {
     }
   }, [managingFundLoading, managingFund, provider, account.address])
 
-  // const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
-  // const { positions } = useV3Positions(account.address)
-  // const [closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
-  //   (acc, p) => {
-  //     acc[p.liquidity?.isZero() ? 1 : 0].push(p)
-  //     return acc
-  //   },
-  //   [[], []],
-  // ) ?? [[], []]
+  const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
+  const { positions, loading: positionsLoading } = useV3Positions(account.address)
+  const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
+    (acc, p) => {
+      acc[p.liquidity?.isZero() ? 1 : 0].push(p)
+      return acc
+    },
+    [[], []],
+  ) ?? [[], []]
 
-  // const userSelectedPositionSet = useMemo(
-  //   () => [...openPositions, ...(userHideClosedPositions ? [] : closedPositions)],
-  //   [closedPositions, openPositions, userHideClosedPositions],
-  // )
+  const userSelectedPositionSet = useMemo(
+    () => [...openPositions, ...(userHideClosedPositions ? [] : closedPositions)],
+    [closedPositions, openPositions, userHideClosedPositions],
+  )
 
-  // const filteredPositions = useFilterPossiblyMaliciousPositions(userSelectedPositionSet)
+  const filteredPositions = useFilterPossiblyMaliciousPositions(userSelectedPositionSet)
 
   if (!isSupportedChain) {
     return <WrongNetworkCard />
   }
 
-  // const showConnectAWallet = !account
+  const showConnectAWallet = !account
 
   return (
     <Trace logImpression page={InterfacePageName.POOL_PAGE}>
@@ -218,11 +218,52 @@ export default function Account() {
             </Flex>
 
             <MainContentWrapper>
-              <div>
-                {managingFundInfo && !managingFundInfoLoading && managingFundInfo.length > 0
-                  ? managingFundInfo?.[0].investor.toString()
-                  : 'test123'}
-              </div>
+              {positionsLoading ? (
+                <PositionsLoadingPlaceholder />
+              ) : filteredPositions && closedPositions && filteredPositions.length > 0 ? (
+                <>
+                  <FundList
+                    positions={filteredPositions}
+                    setUserHideClosedPositions={setUserHideClosedPositions}
+                    userHideClosedPositions={userHideClosedPositions}
+                  />
+                  <div>
+                    {managingFundInfo && !managingFundInfoLoading && managingFundInfo.length > 0
+                      ? managingFundInfo?.[0].investor.toString()
+                      : 'test123'}
+                  </div>
+                </>
+              ) : (
+                <ErrorContainer>
+                  <ThemedText.BodyPrimary color={theme.neutral3} textAlign="center">
+                    <InboxIcon strokeWidth={1} style={{ marginTop: '2em' }} />
+                    <div>{t('pool.activePositions.appear')}</div>
+                  </ThemedText.BodyPrimary>
+                  {!showConnectAWallet && closedPositions.length > 0 && (
+                    <ButtonText
+                      style={{ marginTop: '.5rem' }}
+                      onClick={() => setUserHideClosedPositions(!userHideClosedPositions)}
+                    >
+                      {t('pool.showClosed')}
+                    </ButtonText>
+                  )}
+                  {showConnectAWallet && (
+                    <Trace
+                      logPress
+                      eventOnTrigger={InterfaceEventName.CONNECT_WALLET_BUTTON_CLICKED}
+                      properties={{ received_swap_quote: false }}
+                      element={InterfaceElementName.CONNECT_WALLET_BUTTON}
+                    >
+                      <ButtonPrimary
+                        style={{ marginTop: '2em', marginBottom: '2em', padding: '8px 16px' }}
+                        onClick={accountDrawer.open}
+                      >
+                        {t('common.connectAWallet.button')}
+                      </ButtonPrimary>
+                    </Trace>
+                  )}
+                </ErrorContainer>
+              )}
             </MainContentWrapper>
             <HideSmall>
               <CTACards />
