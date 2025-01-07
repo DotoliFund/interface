@@ -15,6 +15,9 @@ import V3MigratorJson from '@uniswap/v3-periphery/artifacts/contracts/V3Migrator
 import UniswapInterfaceMulticallJson from '@uniswap/v3-periphery/artifacts/contracts/lens/UniswapInterfaceMulticall.sol/UniswapInterfaceMulticall.json'
 import { RPC_PROVIDERS } from 'constants/providers'
 import { WRAPPED_NATIVE_CURRENCY } from 'constants/tokens'
+import DotoliInfoJson from 'dotoli/src/abis/DotoliInfo.json'
+import { DOTOLI_INFO_ADDRESSES } from 'dotoli/src/constants/addresses'
+import { DotoliInfo } from 'dotoli/src/types/dotoli/DotoliInfo'
 import { useAccount } from 'hooks/useAccount'
 import { useEthersProvider } from 'hooks/useEthersProvider'
 import { useEffect, useMemo } from 'react'
@@ -47,6 +50,7 @@ const { abi: IUniswapV2Router02ABI } = IUniswapV2Router02Json
 const { abi: MulticallABI } = UniswapInterfaceMulticallJson
 const { abi: NFTPositionManagerABI } = NonfungiblePositionManagerJson
 const { abi: V2MigratorABI } = V3MigratorJson
+const { abi: DotoliInfoABI } = DotoliInfoJson
 
 // returns null on errors
 export function useContract<T extends Contract = Contract>(
@@ -198,4 +202,8 @@ export function useV3NFTPositionManagerContract(withSignerIfPossible?: boolean):
     }
   }, [account.isConnected, account.chainId, contract, withSignerIfPossible])
   return contract
+}
+
+export function useDotoliInfoContract(withSignerIfPossible?: boolean): DotoliInfo | null {
+  return useContract<DotoliInfo>(DOTOLI_INFO_ADDRESSES, DotoliInfoABI, withSignerIfPossible)
 }
