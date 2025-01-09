@@ -240,11 +240,6 @@ export default function Account() {
             </Flex>
 
             <MainContentWrapper>
-              {/* <div>
-                {managingFundInfo && !managingFundInfoLoading && managingFundInfo.length > 0
-                  ? managingFundInfo?.[0].investor.toString()
-                  : 'test123'}
-              </div> */}
               {managingFundLoading || managingFundInfoLoading ? (
                 <FundsLoadingPlaceholder />
               ) : managingFundInfo && managingFundInfo.length > 0 ? (
@@ -262,29 +257,6 @@ export default function Account() {
                     <InboxIcon strokeWidth={1} style={{ marginTop: '2em' }} />
                     <div>{t('pool.activePositions.appear')}</div>
                   </ThemedText.BodyPrimary>
-                  {/* {!showConnectAWallet && closedPositions.length > 0 && (
-                    <ButtonText
-                      style={{ marginTop: '.5rem' }}
-                      onClick={() => setUserHideClosedPositions(!userHideClosedPositions)}
-                    >
-                      {t('pool.showClosed')}
-                    </ButtonText>
-                  )}
-                  {showConnectAWallet && (
-                    <Trace
-                      logPress
-                      eventOnTrigger={InterfaceEventName.CONNECT_WALLET_BUTTON_CLICKED}
-                      properties={{ received_swap_quote: false }}
-                      element={InterfaceElementName.CONNECT_WALLET_BUTTON}
-                    >
-                      <ButtonPrimary
-                        style={{ marginTop: '2em', marginBottom: '2em', padding: '8px 16px' }}
-                        onClick={accountDrawer.open}
-                      >
-                        {t('common.connectAWallet.button')}
-                      </ButtonPrimary>
-                    </Trace>
-                  )} */}
                 </ErrorContainer>
               )}
             </MainContentWrapper>
@@ -293,11 +265,7 @@ export default function Account() {
                 <FundsLoadingPlaceholder />
               ) : investingFundsInfo && investingFundsInfo.length > 0 ? (
                 <>
-                  {/* <FundList
-                    positions={filteredPositions}
-                    setUserHideClosedPositions={setUserHideClosedPositions}
-                    userHideClosedPositions={userHideClosedPositions}
-                  /> */}
+                  <FundList isManagingFund={false} funds={investingFundsInfo} />
                   <div>
                     {investingFundsInfo && !investingFundsInfoLoading && investingFundsInfo.length > 0
                       ? investingFundsInfo?.[0].investor.toString()
