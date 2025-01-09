@@ -951,7 +951,7 @@
   "liquidityPool.positions.price": "{{amountWithSymbol}} per {{outputToken}}",
   "liquidityPool.positions.price.formatted": "<amountWithSymbol /> per <outputToken />",
   "myaccount.title": "My Account",
-  "myaccount.funds.title": "Your fund",
+  "myaccount.funds.managingfund": "Your managing fund",
   "migrate.allowed": "Allowed",
   "migrate.allowLpMigration": "Allow LP token migration",
   "migrate.connectAccount": "You must connect an account.",
