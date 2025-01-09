@@ -1,8 +1,9 @@
-import PositionListItem from 'components/PositionListItem'
+// import PositionListItem from 'components/PositionListItem'
+import FundListItem from 'components/FundListItem'
+import { FundDetails } from 'dotoli/src/types/fund'
 import styled from 'lib/styled-components'
 import React from 'react'
 import { MEDIA_WIDTHS } from 'theme'
-import { PositionDetails } from 'types/position'
 import { useTranslation } from 'uniswap/src/i18n'
 
 const DesktopHeader = styled.div`
@@ -44,65 +45,26 @@ const MobileHeader = styled.div`
   }
 `
 
-const ToggleWrap = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-`
-
-const ToggleLabel = styled.button`
-  cursor: pointer;
-  background-color: transparent;
-  border: none;
-  color: ${({ theme }) => theme.accent1};
-  font-size: 14px;
-  font-weight: 485;
-`
-
-type PositionListProps = React.PropsWithChildren<{
-  positions: PositionDetails[]
-  setUserHideClosedPositions: any
-  userHideClosedPositions: boolean
+type FundListProps = React.PropsWithChildren<{
+  isManagingFund: boolean
+  funds: FundDetails[]
 }>
 
-export default function FundList({
-  positions,
-  setUserHideClosedPositions,
-  userHideClosedPositions,
-}: PositionListProps) {
+export default function FundList({ isManagingFund, funds }: FundListProps) {
   const { t } = useTranslation()
   return (
     <>
       <DesktopHeader>
-        <div>
-          {t('myaccount.funds.title')}
-          {positions && ' (' + positions.length + ')'}
-        </div>
-
-        <ToggleLabel
-          id="desktop-hide-closed-positions"
-          onClick={() => {
-            setUserHideClosedPositions(!userHideClosedPositions)
-          }}
-        >
-          {userHideClosedPositions ? t('pool.showClosed') : t('pool.hideClosed')}
-        </ToggleLabel>
+        {!isManagingFund ? <>{t('myaccount.funds.managingfund')}</> : <>{t('myaccount.funds.managingfund')}</>}
+        {!isManagingFund ? funds && ' (' + funds.length + ')' : null}
       </DesktopHeader>
       <MobileHeader>
-        {t('myaccount.funds.title')}
-        <ToggleWrap>
-          <ToggleLabel
-            onClick={() => {
-              setUserHideClosedPositions(!userHideClosedPositions)
-            }}
-          >
-            {userHideClosedPositions ? t('pool.showClosed') : t('pool.hideClosed')}
-          </ToggleLabel>
-        </ToggleWrap>
+        {!isManagingFund ? <>{t('myaccount.funds.managingfund')}</> : <>{t('myaccount.funds.managingfund')}</>}
+        {!isManagingFund ? funds && ' (' + funds.length + ')' : null}
       </MobileHeader>
-      {positions.map((p) => (
-        <PositionListItem key={p.tokenId.toString()} {...p} />
-      ))}
+      {funds.map((p) => {
+        return <FundListItem key={p.fundId} fundDetails={p} />
+      })}
     </>
   )
 }

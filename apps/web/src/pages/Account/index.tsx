@@ -2,7 +2,7 @@ import { useWeb3React } from '@web3-react/core'
 // import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ButtonPrimary } from 'components/Button'
 import { AutoColumn } from 'components/Column'
-// import FundList from 'components/FundList'
+import FundList from 'components/FundList'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { useIsSupportedChainId } from 'constants/chains'
 import { FundDetails } from 'dotoli/src/types/fund'
@@ -181,60 +181,40 @@ export default function Account() {
   useEffect(() => {
     if (investingFundsLoading) {
       setInvestingFundsInfoLoading(true)
-    }
-    if (!investingFundsLoading) {
-      getInfo()
-      setInvestingFundsInfoLoading(false)
+      return
     }
     async function getInfo() {
-      if (investingFunds && investingFunds.length > 0 && provider && account) {
+      if (!investingFunds || !investingFunds.length || !provider || !account?.address) {
+        setInvestingFundsInfo(undefined)
+        setInvestingFundsInfoLoading(false)
+        return
+      }
+      try {
         const investingFundList = investingFunds
         const investingFundsInfoList: FundDetails[] = []
-
         for (let i = 0; i < investingFundList.length; i++) {
           const investingFund: string = investingFundList[i]
           if (JSBI.BigInt(investingFund).toString() === JSBI.BigInt(managingFund).toString()) {
             continue
           }
-          const investingFundsInfo: FundDetails = {
+          investingFundsInfoList.push({
             fundId: JSBI.BigInt(investingFund).toString(),
-            investor: account.address ?? '',
-          }
-          investingFundsInfoList.push(investingFundsInfo)
+            investor: account.address,
+          })
         }
-        if (investingFundsInfoList.length === 0) {
-          setInvestingFundsInfo(undefined)
-        } else {
-          setInvestingFundsInfo(investingFundsInfoList)
-        }
-      } else {
+        setInvestingFundsInfo(investingFundsInfoList.length ? investingFundsInfoList : undefined)
+      } catch (error) {
         setInvestingFundsInfo(undefined)
+      } finally {
+        setInvestingFundsInfoLoading(false)
       }
     }
-  }, [investingFundsLoading, managingFund, investingFunds, provider, account])
-
-  // const [userHideClosedPositions] = useUserHideClosedPositions()
-  // const { positions } = useV3Positions(account.address)
-  // const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
-  //   (acc, p) => {
-  //     acc[p.liquidity?.isZero() ? 1 : 0].push(p)
-  //     return acc
-  //   },
-  //   [[], []],
-  // ) ?? [[], []]
-
-  // const userSelectedPositionSet = useMemo(
-  //   () => [...openPositions, ...(userHideClosedPositions ? [] : closedPositions)],
-  //   [closedPositions, openPositions, userHideClosedPositions],
-  // )
-
-  //const filteredPositions = useFilterPossiblyMaliciousPositions(userSelectedPositionSet)
+    getInfo()
+  }, [investingFundsLoading, managingFund, investingFunds, provider, account?.address])
 
   if (!isSupportedChain) {
     return <WrongNetworkCard />
   }
-
-  // const showConnectAWallet = !account
 
   return (
     <Trace>
@@ -269,11 +249,7 @@ export default function Account() {
                 <FundsLoadingPlaceholder />
               ) : managingFundInfo && managingFundInfo.length > 0 ? (
                 <>
-                  {/* <FundList
-                    positions={filteredPositions}
-                    setUserHideClosedPositions={setUserHideClosedPositions}
-                    userHideClosedPositions={userHideClosedPositions}
-                  /> */}
+                  <FundList isManagingFund={true} funds={managingFundInfo} />
                   <div>
                     {managingFundInfo && !managingFundInfoLoading && managingFundInfo.length > 0
                       ? managingFundInfo?.[0].investor.toString()
