@@ -11,6 +11,7 @@ import {
   ApproveTransactionInfo,
   ClaimTransactionInfo,
   CollectFeesTransactionInfo,
+  CreateFundTransactionInfo,
   CreateV3PoolTransactionInfo,
   DelegateTransactionInfo,
   ExactInputSwapTransactionInfo,
@@ -328,6 +329,17 @@ function SendSummary({ info }: { info: SendTransactionInfo }) {
   )
 }
 
+function CreateFundSummary({ info }: { info: CreateFundTransactionInfo }) {
+  return (
+    <Trans
+      i18nKey="account.transactionSummary.createFundSummary"
+      values={{
+        manager: info.manager,
+      }}
+    />
+  )
+}
+
 function SwapSummary({ info }: { info: ExactInputSwapTransactionInfo | ExactOutputSwapTransactionInfo }) {
   if (info.tradeType === TradeType.EXACT_INPUT) {
     return (
@@ -430,5 +442,8 @@ export function TransactionSummary({ info }: { info: TransactionInfo }) {
 
     case TransactionType.SEND:
       return <SendSummary info={info} />
+
+    case TransactionType.CREATE_FUND:
+      return <CreateFundSummary info={info} />
   }
 }

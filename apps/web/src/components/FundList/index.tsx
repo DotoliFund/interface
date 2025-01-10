@@ -55,11 +55,11 @@ export default function FundList({ isManagingFund, funds }: FundListProps) {
   return (
     <>
       <DesktopHeader>
-        {!isManagingFund ? <>{t('myaccount.funds.managingfund')}</> : <>{t('myaccount.funds.managingfund')}</>}
+        {!isManagingFund ? <>{t('myaccount.investingfund')}</> : <>{t('myaccount.managingfund')}</>}
         {!isManagingFund ? funds && ' (' + funds.length + ')' : null}
       </DesktopHeader>
       <MobileHeader>
-        {!isManagingFund ? <>{t('myaccount.funds.managingfund')}</> : <>{t('myaccount.funds.managingfund')}</>}
+        {!isManagingFund ? <>{t('myaccount.investingfund')}</> : <>{t('myaccount.managingfund')}</>}
         {!isManagingFund ? funds && ' (' + funds.length + ')' : null}
       </MobileHeader>
       {funds.map((p) => {
