@@ -40,6 +40,7 @@ export enum TransactionType {
   DEPLOY,
   CANCEL,
   LIMIT,
+  CREATE_FUND,
 }
 
 interface BaseTransactionInfo {
@@ -183,6 +184,11 @@ export interface SendTransactionInfo {
   recipient: string
 }
 
+export interface CreateFundTransactionInfo {
+  type: TransactionType.CREATE_FUND
+  manager: string
+}
+
 export type TransactionInfo =
   | ApproveTransactionInfo
   | ExactOutputSwapTransactionInfo
@@ -203,6 +209,7 @@ export type TransactionInfo =
   | RemoveLiquidityV3TransactionInfo
   | SubmitProposalTransactionInfo
   | SendTransactionInfo
+  | CreateFundTransactionInfo
 
 interface BaseTransactionDetails {
   status: TransactionStatus
