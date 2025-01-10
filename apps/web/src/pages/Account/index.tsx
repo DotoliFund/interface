@@ -1,15 +1,17 @@
+import type { TransactionResponse } from '@ethersproject/providers'
 import { useWeb3React } from '@web3-react/core'
-// import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ButtonPrimary } from 'components/Button'
 import { AutoColumn } from 'components/Column'
-// import FundList from 'components/FundList'
+import FundList from 'components/FundList'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { useIsSupportedChainId } from 'constants/chains'
+import { DOTOLI_INFO_ADDRESSES } from 'dotoli/src/constants/addresses'
+import { DotoliInfo } from 'dotoli/src/interface/DotoliInfo'
 import { FundDetails } from 'dotoli/src/types/fund'
 import { useAccount } from 'hooks/useAccount'
 import { useDotoliInfoContract } from 'hooks/useContract'
-// import { useFilterPossiblyMaliciousPositions } from 'hooks/useFilterPossiblyMaliciousPositions'
-// import { useV3Positions } from 'hooks/useV3Positions'
+import { useEthersSigner } from 'hooks/useEthersSigner'
 import JSBI from 'jsbi'
 import { useSingleCallResult } from 'lib/hooks/multicall'
 import deprecatedStyled, { css, useTheme } from 'lib/styled-components'
@@ -17,13 +19,15 @@ import CTACards from 'pages/Account/CTACards'
 import { LoadingRows } from 'pages/Account/styled'
 import { useEffect, useState } from 'react'
 import { AlertTriangle, Inbox } from 'react-feather'
-import { Link } from 'react-router-dom'
-// import { useUserHideClosedPositions } from 'state/user/hooks'
+import { useTransactionAdder } from 'state/transactions/hooks'
+import { TransactionType } from 'state/transactions/types'
 import { HideSmall, ThemedText } from 'theme/components'
-// import { PositionDetails } from 'types/position'
 import { Flex, Text } from 'ui/src'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { t, useTranslation } from 'uniswap/src/i18n'
+import { logger } from 'utilities/src/logger/logger'
+import { calculateGasMargin } from 'utils/calculateGasMargin'
+import { WrongChainError } from 'utils/errors'
 
 const PageWrapper = deprecatedStyled(AutoColumn)`
   padding: 68px 8px 0px;
@@ -134,8 +138,10 @@ export default function Account() {
   const { t } = useTranslation()
   const { provider } = useWeb3React()
   const account = useAccount()
+  const signer = useEthersSigner()
   const isSupportedChain = useIsSupportedChainId(account.chainId)
-  // const accountDrawer = useAccountDrawer()
+  const addTransaction = useTransactionAdder()
+  const accountDrawer = useAccountDrawer()
 
   const theme = useTheme()
 
@@ -181,60 +187,83 @@ export default function Account() {
   useEffect(() => {
     if (investingFundsLoading) {
       setInvestingFundsInfoLoading(true)
-    }
-    if (!investingFundsLoading) {
-      getInfo()
-      setInvestingFundsInfoLoading(false)
+      return
     }
     async function getInfo() {
-      if (investingFunds && investingFunds.length > 0 && provider && account) {
+      if (!investingFunds || !investingFunds.length || !provider || !account?.address) {
+        setInvestingFundsInfo(undefined)
+        setInvestingFundsInfoLoading(false)
+        return
+      }
+      try {
         const investingFundList = investingFunds
         const investingFundsInfoList: FundDetails[] = []
-
         for (let i = 0; i < investingFundList.length; i++) {
           const investingFund: string = investingFundList[i]
           if (JSBI.BigInt(investingFund).toString() === JSBI.BigInt(managingFund).toString()) {
             continue
           }
-          const investingFundsInfo: FundDetails = {
+          investingFundsInfoList.push({
             fundId: JSBI.BigInt(investingFund).toString(),
-            investor: account.address ?? '',
-          }
-          investingFundsInfoList.push(investingFundsInfo)
+            investor: account.address,
+          })
         }
-        if (investingFundsInfoList.length === 0) {
-          setInvestingFundsInfo(undefined)
-        } else {
-          setInvestingFundsInfo(investingFundsInfoList)
-        }
-      } else {
+        setInvestingFundsInfo(investingFundsInfoList.length ? investingFundsInfoList : undefined)
+      } catch (error) {
         setInvestingFundsInfo(undefined)
+      } finally {
+        setInvestingFundsInfoLoading(false)
       }
     }
-  }, [investingFundsLoading, managingFund, investingFunds, provider, account])
-
-  // const [userHideClosedPositions] = useUserHideClosedPositions()
-  // const { positions } = useV3Positions(account.address)
-  // const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
-  //   (acc, p) => {
-  //     acc[p.liquidity?.isZero() ? 1 : 0].push(p)
-  //     return acc
-  //   },
-  //   [[], []],
-  // ) ?? [[], []]
-
-  // const userSelectedPositionSet = useMemo(
-  //   () => [...openPositions, ...(userHideClosedPositions ? [] : closedPositions)],
-  //   [closedPositions, openPositions, userHideClosedPositions],
-  // )
-
-  //const filteredPositions = useFilterPossiblyMaliciousPositions(userSelectedPositionSet)
+    getInfo()
+  }, [investingFundsLoading, managingFund, investingFunds, provider, account?.address])
 
   if (!isSupportedChain) {
     return <WrongNetworkCard />
   }
 
-  // const showConnectAWallet = !account
+  async function onCreate() {
+    if (!account.isConnected) {
+      accountDrawer.open()
+    }
+    if (account.status !== 'connected' || !signer || !account.chainId) {
+      return
+    }
+
+    const { calldata, value } = DotoliInfo.createCallParameters()
+    const txn: { to: string; data: string; value: string } = {
+      to: DOTOLI_INFO_ADDRESSES,
+      data: calldata,
+      value,
+    }
+
+    const connectedChainId = await signer.getChainId()
+    if (account.chainId !== connectedChainId) {
+      throw new WrongChainError()
+    }
+
+    signer
+      .estimateGas(txn)
+      .then((estimate) => {
+        const newTxn = {
+          ...txn,
+          gasLimit: calculateGasMargin(estimate),
+        }
+
+        return signer.sendTransaction(newTxn).then((response: TransactionResponse) => {
+          addTransaction(response, {
+            type: TransactionType.CREATE_FUND,
+            manager: account.address,
+          })
+        })
+      })
+      .catch((error) => {
+        // we only care if the error is something _other_ than the user rejected the tx
+        if (error?.code !== 4001) {
+          logger.warn('Create Fund', 'createFund', 'Error completing create fund tx', error)
+        }
+      })
+  }
 
   return (
     <Trace>
@@ -253,32 +282,28 @@ export default function Account() {
                 <Text variant="heading2">{t('myaccount.title')}</Text>
               </Flex>
               <Flex row gap="8px" $md={{ width: '100%' }}>
-                <ResponsiveButtonPrimary data-cy="join-pool-button" id="join-pool-button" as={Link} to="/add/ETH">
-                  {t('pool.newPosition.plus')}
-                </ResponsiveButtonPrimary>
+                {managingFundInfo && managingFundInfo.length > 0 ? (
+                  <></>
+                ) : (
+                  <ResponsiveButtonPrimary
+                    data-cy="join-pool-button"
+                    id="join-pool-button"
+                    onClick={() => {
+                      onCreate()
+                    }}
+                  >
+                    + <>Create Fund</>
+                  </ResponsiveButtonPrimary>
+                )}
               </Flex>
             </Flex>
 
             <MainContentWrapper>
-              {/* <div>
-                {managingFundInfo && !managingFundInfoLoading && managingFundInfo.length > 0
-                  ? managingFundInfo?.[0].investor.toString()
-                  : 'test123'}
-              </div> */}
               {managingFundLoading || managingFundInfoLoading ? (
                 <FundsLoadingPlaceholder />
               ) : managingFundInfo && managingFundInfo.length > 0 ? (
                 <>
-                  {/* <FundList
-                    positions={filteredPositions}
-                    setUserHideClosedPositions={setUserHideClosedPositions}
-                    userHideClosedPositions={userHideClosedPositions}
-                  /> */}
-                  <div>
-                    {managingFundInfo && !managingFundInfoLoading && managingFundInfo.length > 0
-                      ? managingFundInfo?.[0].investor.toString()
-                      : 'test123'}
-                  </div>
+                  <FundList isManagingFund={true} funds={managingFundInfo} />
                 </>
               ) : (
                 <ErrorContainer>
@@ -286,29 +311,6 @@ export default function Account() {
                     <InboxIcon strokeWidth={1} style={{ marginTop: '2em' }} />
                     <div>{t('pool.activePositions.appear')}</div>
                   </ThemedText.BodyPrimary>
-                  {/* {!showConnectAWallet && closedPositions.length > 0 && (
-                    <ButtonText
-                      style={{ marginTop: '.5rem' }}
-                      onClick={() => setUserHideClosedPositions(!userHideClosedPositions)}
-                    >
-                      {t('pool.showClosed')}
-                    </ButtonText>
-                  )}
-                  {showConnectAWallet && (
-                    <Trace
-                      logPress
-                      eventOnTrigger={InterfaceEventName.CONNECT_WALLET_BUTTON_CLICKED}
-                      properties={{ received_swap_quote: false }}
-                      element={InterfaceElementName.CONNECT_WALLET_BUTTON}
-                    >
-                      <ButtonPrimary
-                        style={{ marginTop: '2em', marginBottom: '2em', padding: '8px 16px' }}
-                        onClick={accountDrawer.open}
-                      >
-                        {t('common.connectAWallet.button')}
-                      </ButtonPrimary>
-                    </Trace>
-                  )} */}
                 </ErrorContainer>
               )}
             </MainContentWrapper>
@@ -317,16 +319,7 @@ export default function Account() {
                 <FundsLoadingPlaceholder />
               ) : investingFundsInfo && investingFundsInfo.length > 0 ? (
                 <>
-                  {/* <FundList
-                    positions={filteredPositions}
-                    setUserHideClosedPositions={setUserHideClosedPositions}
-                    userHideClosedPositions={userHideClosedPositions}
-                  /> */}
-                  <div>
-                    {investingFundsInfo && !investingFundsInfoLoading && investingFundsInfo.length > 0
-                      ? investingFundsInfo?.[0].investor.toString()
-                      : '123test'}
-                  </div>
+                  <FundList isManagingFund={false} funds={investingFundsInfo} />
                 </>
               ) : (
                 <ErrorContainer>

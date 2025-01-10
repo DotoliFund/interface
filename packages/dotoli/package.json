@@ -5,7 +5,9 @@
     "build": "tsc -b",
     "contracts:compile:abi": "typechain --target ethers-v5 --out-dir src/abis/types \"./src/abis/**/*.json\"",
     "contracts:compile:info": "typechain --target ethers-v5 --out-dir src/types/dotoli \"../../node_modules/@dotolifund/core/artifacts/contracts/DotoliInfo.sol/DotoliInfo.json\"",
-    "contracts": "yarn contracts:compile:abi && yarn contracts:compile:info"
+    "contracts:compile:fund": "typechain --target ethers-v5 --out-dir src/types/dotoli \"../../node_modules/@dotolifund/core/artifacts/contracts/DotoliFund.sol/DotoliFund.json\"",
+    "contracts:compile:staking": "typechain --target ethers-v5 --out-dir src/types/dotoli \"../../node_modules/@dotolifund/staking/artifacts/contracts/DotoliStaking.sol/DotoliStaking.json\"",
+    "contracts": "yarn contracts:compile:abi && yarn contracts:compile:info && yarn contracts:compile:fund && yarn contracts:compile:staking"
   },
   "dependencies": {
     "@apollo/client": "3.10.4",
