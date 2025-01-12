@@ -101,27 +101,25 @@ export default function FundListItem({ fundDetails }: FundListItemProps) {
   const jsonString = JSON.stringify(data ?? {})
   const jsonData: Data = JSON.parse(jsonString)
 
-  return (
-    <LinkRow to="www.google.com">
-      {jsonData.fund ? (
-        <RowBetween>
-          <PrimaryPositionIdData>
-            <ThemedText.SubHeader>{'fundId : '}</ThemedText.SubHeader>
-            <FeeTierText>{jsonData.fund?.fundId}</FeeTierText>
-            <ThemedText.SubHeader>{'manager : '}</ThemedText.SubHeader>
-            <FeeTierText>{shortenAddress(jsonData.fund?.manager)}</FeeTierText>
-            <ThemedText.SubHeader>{'USD : '}</ThemedText.SubHeader>
-            <FeeTierText>
-              {formatNumber({ input: jsonData.fund?.currentUSD, type: NumberType.FiatTokenPrice })}
-            </FeeTierText>
-            <ThemedText.SubHeader>{'investors : '}</ThemedText.SubHeader>
-            <FeeTierText>{jsonData.fund?.investorCount}</FeeTierText>
-          </PrimaryPositionIdData>
-          <RangeBadge removed={false} inRange={true} />
-        </RowBetween>
-      ) : (
-        <Loader />
-      )}
+  return jsonData.fund ? (
+    <LinkRow to={'/fund/' + jsonData.fund.fundId}>
+      <RowBetween>
+        <PrimaryPositionIdData>
+          <ThemedText.SubHeader>{'fundId : '}</ThemedText.SubHeader>
+          <FeeTierText>{jsonData.fund.fundId}</FeeTierText>
+          <ThemedText.SubHeader>{'manager : '}</ThemedText.SubHeader>
+          <FeeTierText>{shortenAddress(jsonData.fund.manager)}</FeeTierText>
+          <ThemedText.SubHeader>{'USD : '}</ThemedText.SubHeader>
+          <FeeTierText>
+            {formatNumber({ input: jsonData.fund.currentUSD, type: NumberType.FiatTokenPrice })}
+          </FeeTierText>
+          <ThemedText.SubHeader>{'investors : '}</ThemedText.SubHeader>
+          <FeeTierText>{jsonData.fund.investorCount}</FeeTierText>
+        </PrimaryPositionIdData>
+        <RangeBadge removed={false} inRange={true} />
+      </RowBetween>
     </LinkRow>
+  ) : (
+    <Loader />
   )
 }
