@@ -1,8 +1,9 @@
 import { Interface } from '@ethersproject/abi'
-import { BigintIsh, Currency, Token, V3_CORE_FACTORY_ADDRESSES } from '@uniswap/sdk-core'
+import { BigintIsh, Currency, CurrencyAmount, Token, V3_CORE_FACTORY_ADDRESSES } from '@uniswap/sdk-core'
 import IUniswapV3PoolStateJSON from '@uniswap/v3-core/artifacts/contracts/interfaces/pool/IUniswapV3PoolState.sol/IUniswapV3PoolState.json'
 import { FeeAmount, Pool, computePoolAddress } from '@uniswap/v3-sdk'
 import { useContractMultichain } from 'components/AccountDrawer/MiniPortfolio/Pools/hooks'
+import { USDC_MAINNET, WRAPPED_NATIVE_CURRENCY } from 'constants/tokens'
 import { useAccount } from 'hooks/useAccount'
 import JSBI from 'jsbi'
 import { useMultipleContractSingleData } from 'lib/hooks/multicall'
@@ -10,7 +11,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { IUniswapV3PoolStateInterface } from 'uniswap/src/abis/types/v3/IUniswapV3PoolState'
 import { UniswapV3Pool } from 'uniswap/src/abis/types/v3/UniswapV3Pool'
 import { UNIVERSE_CHAIN_INFO } from 'uniswap/src/constants/chains'
-import { InterfaceChainId } from 'uniswap/src/types/chains'
+import { InterfaceChainId, UniverseChainId } from 'uniswap/src/types/chains'
 import { logger } from 'utilities/src/logger/logger'
 
 const POOL_STATE_INTERFACE = new Interface(IUniswapV3PoolStateJSON.abi) as IUniswapV3PoolStateInterface
@@ -234,4 +235,244 @@ export function usePoolMultichain(
     getPool()
   }, [contract, fee, poolAddress, tokenA, tokenB])
   return poolData.current
+}
+
+//return [Token, best pool's token price in ETH]
+function useTokensPriceInETH(
+  chainId: number | undefined,
+  poolKeys: [Currency | undefined, Currency | undefined, FeeAmount | undefined][],
+): [Token, number][] | undefined {
+  const pools = usePools(poolKeys)
+
+  if (chainId !== UniverseChainId.Mainnet || chainId === undefined) {
+    return undefined
+  }
+
+  const weth9 = WRAPPED_NATIVE_CURRENCY[chainId]
+
+  //
+  // Remain only one pool fee which is the largest liquidity
+  // and filter other small liquidity pool fee
+  // ex)
+  //   ETH, USDC, 0.05% fee pool = 1000 liquidity
+  //   ETH, USDC, 0.3% fee pool = 700 liquidity
+  //   ETH, USDC, 1% fee pool = 500 liquidity
+  //   => remain only ETH, USDC, 1% fee pool
+  //
+  const bestPools: Pool[] = []
+
+  pools.map((data) => {
+    const poolState = data[0]
+    const newPool = data[1]
+    if (poolState === PoolState.EXISTS && newPool) {
+      if (bestPools.length === 0) {
+        bestPools.push(newPool)
+      } else {
+        const bestPoolToken0 = bestPools[bestPools.length - 1].token0
+        const bestPoolToken1 = bestPools[bestPools.length - 1].token1
+        const bestPoolFee = bestPools[bestPools.length - 1].fee
+        const newPooltoken0 = newPool.token0
+        const newPooltoken1 = newPool.token1
+        const newPoolfee = newPool.fee
+
+        // in case of same tokens but different fee pool
+        if (
+          (bestPoolToken0.equals(newPooltoken0) &&
+            bestPoolToken1.equals(newPooltoken1) &&
+            bestPoolFee !== newPoolfee) ||
+          (bestPoolToken0.equals(newPooltoken1) && bestPoolToken1.equals(newPooltoken0) && bestPoolFee !== newPoolfee)
+        ) {
+          const bestPoolLiquidity = bestPools[bestPools.length - 1].liquidity
+          const newliquidity = newPool.liquidity
+          if (JSBI.lessThan(bestPoolLiquidity, newliquidity)) {
+            bestPools.pop()
+            bestPools.push(newPool)
+          }
+        } else {
+          // if new tokens pool
+          bestPools.push(newPool)
+        }
+      }
+    }
+    return null
+  })
+
+  // [Token, best pool's token price in ETH]
+  const tokensPriceInETH: [Token, number][] = []
+
+  for (let i = 0; i < bestPools.length; i++) {
+    if (weth9 && bestPools[i].token0.equals(weth9)) {
+      const token1Price = bestPools[i].token1Price.quote(
+        CurrencyAmount.fromRawAmount(
+          bestPools[i].token1,
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(bestPools[i].token1.decimals)),
+        ),
+      ).quotient
+      const ethDecimal = Math.pow(10, 18).toFixed(18)
+      const token1PriceInETH = parseFloat(token1Price.toString()) / parseFloat(ethDecimal)
+      tokensPriceInETH.push([bestPools[i].token1, token1PriceInETH])
+    } else {
+      const token0Price = bestPools[i].token0Price.quote(
+        CurrencyAmount.fromRawAmount(
+          bestPools[i].token0,
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(bestPools[i].token0.decimals)),
+        ),
+      ).quotient
+      const ethDecimal = Math.pow(10, 18).toFixed(18)
+      const token1PriceInETH = parseFloat(token0Price.toString()) / parseFloat(ethDecimal)
+      tokensPriceInETH.push([bestPools[i].token0, token1PriceInETH])
+    }
+  }
+
+  return tokensPriceInETH
+}
+
+export function useETHPriceInUSD(chainId: number | undefined): number | undefined {
+  const poolTokens: [Token | undefined, Token | undefined, FeeAmount | undefined][] = []
+  if (chainId === UniverseChainId.Mainnet) {
+    poolTokens.push([WRAPPED_NATIVE_CURRENCY[chainId], USDC_MAINNET, FeeAmount.HIGH])
+    poolTokens.push([WRAPPED_NATIVE_CURRENCY[chainId], USDC_MAINNET, FeeAmount.MEDIUM])
+    poolTokens.push([WRAPPED_NATIVE_CURRENCY[chainId], USDC_MAINNET, FeeAmount.LOW])
+  }
+
+  const pools = usePools(poolTokens)
+  if (chainId === undefined) {
+    return undefined
+  }
+
+  const weth9 = WRAPPED_NATIVE_CURRENCY[chainId]
+  let bestLiquidity = '0'
+  let bestPool = 0
+  pools.map((data, index) => {
+    const poolState = data[0]
+    const newPool = data[1]
+    if (poolState === PoolState.EXISTS && newPool) {
+      if (JSBI.GT(newPool.liquidity, JSBI.BigInt(bestLiquidity))) {
+        bestLiquidity = newPool.liquidity.toString()
+        bestPool = index
+      }
+    }
+    return null
+  })
+
+  const poolState = pools[bestPool][0]
+  const pool = pools[bestPool][1]
+  if (poolState === PoolState.EXISTS && pool) {
+    const token0 = pool.token0
+    if (weth9 && token0.equals(weth9)) {
+      const token0Price = pool.token0Price.quote(
+        CurrencyAmount.fromRawAmount(
+          pool.token0,
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(pool.token0.decimals)),
+        ),
+      ).quotient
+      const token0PriceDecimal = parseFloat(token0Price.toString()).toFixed(18)
+      const usdcDecimal = Math.pow(10, USDC_MAINNET.decimals).toFixed(18)
+      const priceInUSD = parseFloat(token0PriceDecimal) / parseFloat(usdcDecimal)
+      return priceInUSD
+    } else {
+      const token1Price = pool.token1Price.quote(
+        CurrencyAmount.fromRawAmount(
+          pool.token1,
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(pool.token1.decimals)),
+        ),
+      ).quotient
+      const token1PriceDecimal = parseFloat(token1Price.toString()).toFixed(18)
+      const usdcDecimal = Math.pow(10, USDC_MAINNET.decimals).toFixed(18)
+      const priceInUSD = parseFloat(token1PriceDecimal) / parseFloat(usdcDecimal)
+      return priceInUSD
+    }
+  } else {
+    return undefined
+  }
+}
+
+function getCurrencyAmount(tokens: CurrencyAmount<Token>[], tokenAddress: string): CurrencyAmount<Token> | undefined {
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i].currency.address.toUpperCase() === tokenAddress.toUpperCase()) {
+      return tokens[i]
+    }
+  }
+  return undefined
+}
+
+// return : [Token, token's amount, token's price in USD]
+export function useTokensPriceInUSD(
+  chainId: number | undefined,
+  weth9: Token | undefined,
+  ethPriceInUSDC: number | undefined,
+  tokens: CurrencyAmount<Token>[] | undefined,
+): [CurrencyAmount<Token>, number][] {
+  const tokensPools: [Token | undefined, Token | undefined, FeeAmount | undefined][] = []
+  // // get token's amount
+  if (tokens) {
+    tokens.map((data) => {
+      tokensPools.push([
+        new Token(
+          chainId ?? UniverseChainId.Mainnet,
+          data.currency.address,
+          data.currency.decimals,
+          data.currency.symbol,
+        ),
+        weth9,
+        FeeAmount.HIGH,
+      ])
+      tokensPools.push([
+        new Token(
+          chainId ?? UniverseChainId.Mainnet,
+          data.currency.address,
+          data.currency.decimals,
+          data.currency.symbol,
+        ),
+        weth9,
+        FeeAmount.MEDIUM,
+      ])
+      tokensPools.push([
+        new Token(
+          chainId ?? UniverseChainId.Mainnet,
+          data.currency.address,
+          data.currency.decimals,
+          data.currency.symbol,
+        ),
+        weth9,
+        FeeAmount.LOW,
+      ])
+
+      return null
+    })
+  }
+
+  // get token's price in ETH
+  // weth9 is removed after useTokensPriceInETH()
+  const tokensPriceInETH = useTokensPriceInETH(chainId, tokensPools)
+  //[Token, token's amount, token's price in USD]
+  const tokensPriceInUSD: [CurrencyAmount<Token>, number][] = []
+  if (tokens && ethPriceInUSDC && tokensPriceInETH && weth9 !== undefined) {
+    tokensPriceInETH.map((data) => {
+      const tokenAddress = data[0].address
+      const priceInETH = data[1]
+
+      const currencyAmount = getCurrencyAmount(tokens, tokenAddress)
+      if (currencyAmount) {
+        const decimals = currencyAmount.currency.decimals
+        const decimal = 10 ** decimals
+        const tokenAmount = Number(currencyAmount.quotient.toString()) / decimal
+        tokensPriceInUSD.push([currencyAmount, tokenAmount * priceInETH * ethPriceInUSDC])
+      }
+      return null
+    })
+
+    // if weth9 exist add amount
+    const weth9CurrencyAmount = getCurrencyAmount(tokens, weth9.address)
+    if (weth9CurrencyAmount) {
+      const weth9Decimal = 10 ** 18
+      const weth9Amount = Number(weth9CurrencyAmount.quotient.toString()) / Number(weth9Decimal)
+      tokensPriceInUSD.push([
+        CurrencyAmount.fromRawAmount(weth9, weth9CurrencyAmount.quotient),
+        weth9Amount * ethPriceInUSDC,
+      ])
+    }
+  }
+
+  return tokensPriceInUSD
 }

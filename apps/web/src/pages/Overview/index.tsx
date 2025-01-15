@@ -3,11 +3,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { TopFundsTable } from 'components/Funds/FundTable'
 import { WhiteListsTable } from 'components/WhiteLists/WhiteListTable'
+import { THE_GRAPH_QUERY_URL } from 'constants/query'
 import { gql, request } from 'graphql-request'
 import { useEffect, useRef } from 'react'
 import { Flex } from 'ui/src'
 
-const url = 'https://api.studio.thegraph.com/query/44946/dotoli/version/latest'
+const url = THE_GRAPH_QUERY_URL
 const query = gql`
   {
     funds(orderBy: currentUSD, orderDirection: desc, subgraphError: allow) {
