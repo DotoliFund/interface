@@ -1,18 +1,22 @@
-import { InterfacePageName } from '@uniswap/analytics-events'
 import { useAccount } from 'hooks/useAccount'
 import RecentTransactions from 'pages/Fund/tables/RecentTransactions'
 import { useMemo } from 'react'
-import { Flex, Text } from 'ui/src'
-import Trace from 'uniswap/src/features/telemetry/Trace'
+// import ChartSection from 'components/Pools/PoolDetails/ChartSection'
+import { Text } from 'ui/src'
 import { Trans } from 'uniswap/src/i18n'
 // import { useDotoliInfoContract } from 'hooks/useContract'
 // import { useSingleCallResult } from 'lib/hooks/multicall'
 import { CurrencyAmount, Token } from '@uniswap/sdk-core'
+import Column from 'components/Column'
+import Row from 'components/Row'
 import { WRAPPED_NATIVE_CURRENCY } from 'constants/tokens'
 import { useFundData } from 'data/Fund/fundData'
 import { useVolumeChartData } from 'data/Fund/volumeChartData'
 import { useETHPriceInUSD, useTokensPriceInUSD } from 'hooks/usePools'
+import styled, { useTheme } from 'lib/styled-components'
+import { Helmet } from 'react-helmet-async/lib/index'
 import { useParams } from 'react-router-dom'
+import { BREAKPOINTS, ThemeProvider } from 'theme'
 
 export enum ExploreTab {
   Tokens = 'tokens',
@@ -26,12 +30,92 @@ export enum ExploreTab {
 //   FEES,
 // }
 
-const Explore = () => {
+const PageWrapper = styled(Row)`
+  padding: 0 16px 52px;
+  justify-content: center;
+  width: 100%;
+  gap: 40px;
+  align-items: flex-start;
+
+  @media screen and (min-width: ${({ theme }) => theme.breakpoint.md}px) {
+    padding: 48px 20px;
+  }
+  @media screen and (max-width: ${({ theme }) => theme.breakpoint.lg}px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 0px;
+  }
+  @media screen and (min-width: ${({ theme }) => theme.breakpoint.xl}px) {
+    gap: 60px;
+  }
+`
+
+const LeftColumn = styled(Column)`
+  gap: 20px;
+  max-width: 780px;
+  overflow: hidden;
+  justify-content: flex-start;
+
+  @media (max-width: ${BREAKPOINTS.lg}px) {
+    width: 100%;
+    max-width: unset;
+  }
+`
+
+const HR = styled.hr`
+  border: 0.5px solid ${({ theme }) => theme.surface3};
+  width: 100%;
+`
+
+const RightColumn = styled(Column)`
+  gap: 24px;
+  width: 360px;
+
+  @media (max-width: ${BREAKPOINTS.lg}px) {
+    margin: 44px 0px;
+    width: 100%;
+    min-width: unset;
+    & > *:first-child {
+      margin-top: -24px;
+    }
+  }
+`
+
+const TokenDetailsWrapper = styled(Column)`
+  gap: 24px;
+  padding: 20px;
+
+  @media (max-width: ${BREAKPOINTS.lg}px) and (min-width: ${BREAKPOINTS.sm}px) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: unset;
+  }
+
+  @media (max-width: ${BREAKPOINTS.sm}px) {
+    padding: unset;
+  }
+`
+
+const TokenDetailsHeader = styled(Text)`
+  width: 100%;
+  font-size: 24px;
+  font-weight: 485;
+  line-height: 32px;
+`
+
+const LinksContainer = styled(Column)`
+  gap: 16px;
+  width: 100%;
+`
+
+const Fund = () => {
   // const tabNavRef = useRef<HTMLDivElement>(null)
   const account = useAccount()
   const params = useParams()
   const currentPageFund = params.fundId
   const nowDate = Math.floor(new Date().getTime() / 1000)
+
+  const { accent1 } = useTheme()
 
   // useEffect(() => {
   //   if (tabNavRef.current && initialTab) {
@@ -229,16 +313,40 @@ const Explore = () => {
   // }, [volumeChartHoverIndex, formattedVolumeUSD])
 
   return (
-    <Trace logImpression page={InterfacePageName.EXPLORE_PAGE} properties={{ chainName: account.chainId }}>
-      <Flex width="100%" minWidth={320} pt="$spacing48" px="$spacing40" $md={{ p: '$spacing16', pb: 0 }}>
-        <Flex
-          row
-          gap="$spacing24"
-          flexWrap="wrap"
-          justifyContent="flex-start"
-          $md={{ gap: '$spacing16' }}
-          data-testid="explore-navbar"
-        >
+    <ThemeProvider token0={accent1} token1={accent1}>
+      <Helmet>
+        <title>TEST</title>
+      </Helmet>
+      <PageWrapper>
+        <LeftColumn>
+          <Column gap="20px">
+            <Column>
+              {/* <PoolDetailsBreadcrumb
+                chainId={chainInfo?.id}
+                poolAddress={poolAddress}
+                token0={token0}
+                token1={token1}
+                loading={loading}
+              />
+              <PoolDetailsHeader
+                chainId={chainInfo?.id}
+                poolAddress={poolAddress}
+                token0={token0}
+                token1={token1}
+                feeTier={poolData?.feeTier}
+                protocolVersion={poolData?.protocolVersion}
+                toggleReversed={toggleReversed}
+                loading={loading}
+              /> */}
+            </Column>
+            {/* <ChartSection
+              poolData={poolData}
+              loading={loading}
+              isReversed={isReversed}
+              chain={chainInfo?.backendChain.chain}
+            /> */}
+          </Column>
+          <HR />
           <Text
             variant="heading3"
             fontSize={28}
@@ -251,11 +359,46 @@ const Explore = () => {
           >
             <Trans i18nKey="common.transactions" />
           </Text>
-        </Flex>
-        <RecentTransactions />
-      </Flex>
-    </Trace>
+          <RecentTransactions />
+        </LeftColumn>
+        <RightColumn>
+          {/* <PoolDetailsStatsButtons
+            chainId={chainInfo?.id}
+            token0={token0}
+            token1={token1}
+            feeTier={poolData?.feeTier}
+            loading={loading}
+          />
+          <PoolDetailsStats poolData={poolData} isReversed={isReversed} chainId={chainInfo?.id} loading={loading} /> */}
+          <TokenDetailsWrapper>
+            <TokenDetailsHeader>
+              <Trans i18nKey="common.links" />
+            </TokenDetailsHeader>
+            <LinksContainer>
+              {/* <PoolDetailsLink
+                address={poolAddress}
+                chainId={chainInfo?.id}
+                tokens={[token0, token1]}
+                loading={loading}
+              />
+              <PoolDetailsLink
+                address={token0?.address}
+                chainId={chainInfo?.id}
+                tokens={[token0]}
+                loading={loading}
+              />
+              <PoolDetailsLink
+                address={token1?.address}
+                chainId={chainInfo?.id}
+                tokens={[token1]}
+                loading={loading}
+              /> */}
+            </LinksContainer>
+          </TokenDetailsWrapper>
+        </RightColumn>
+      </PageWrapper>
+    </ThemeProvider>
   )
 }
 
-export default Explore
+export default Fund
