@@ -1,0 +1,137 @@
+// //import { Trans } from 'uniswap/src/i18n'
+// import { useAccount } from 'hooks/useAccount'
+// import Card from 'components/Card'
+// import { RowBetween } from 'components/Row'
+// import React, { Dispatch, ReactNode, SetStateAction, useEffect } from 'react'
+// import { BarChart as BarChartIcon } from 'react-feather'
+// import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+// import styled, { css, useTheme } from 'lib/styled-components'
+// import { ThemedText } from 'theme/components'
+// import { getEtherscanLink } from 'utils/'
+
+// const DEFAULT_HEIGHT = 340
+
+// const Wrapper = styled(Card)`
+//   width: 100%;
+//   height: ${DEFAULT_HEIGHT}px;
+//   padding: 1rem;
+//   padding-right: 1rem;
+//   display: flex;
+//   background-color: ${({ theme }) => theme.surface1};
+//   flex-direction: column;
+//   > * {
+//     font-size: 1rem;
+//   }
+// `
+
+// const IconStyle = css`
+//   width: 48px;
+//   height: 48px;
+//   margin-bottom: 0.5rem;
+// `
+
+// const BarChartIconComponent = styled(BarChartIcon)`
+//   ${IconStyle}
+// `
+
+// type BarChartProps = {
+//   data: any[]
+//   color?: string
+//   color2?: string
+//   minHeight?: number
+//   setIndex: Dispatch<SetStateAction<number | undefined>>
+//   topLeft?: ReactNode
+//   topRight?: ReactNode
+//   bottomLeft?: ReactNode
+//   bottomRight?: ReactNode
+// } & React.HTMLAttributes<HTMLDivElement>
+
+// const Chart = ({ data, color = '#56B2A4', color2 = '#1E90FF', setIndex, topLeft, topRight }: BarChartProps) => {
+//   const theme = useTheme()
+//   const { account } = useAccount()
+//   const chainId = account.chainId
+
+//   const isEmptyData = !data || data.length === 0
+
+//   const formatXAxis = (props: any) => {
+//     return props === 'WETH' ? 'ETH' : props
+//   }
+
+//   const CustomTooltip = (props: any) => {
+//     const payload = props.payload && props.payload.length > 0 ? props.payload[0] : undefined
+//     const index = payload ? payload.payload.index : undefined
+
+//     useEffect(() => {
+//       setIndex(index)
+//     }, [index])
+
+//     return null
+//   }
+
+//   return (
+//     <Wrapper backgroundColor={!isEmptyData ? theme.background : undefined}>
+//       <RowBetween>
+//         {isEmptyData ? null : (
+//           <>
+//             {topLeft ?? null}
+//             {topRight ?? null}
+//           </>
+//         )}
+//       </RowBetween>
+//       <ResponsiveContainer width="100%" height="100%">
+//         {isEmptyData ? (
+//           <ThemedText.DeprecatedBody color={theme.accent1} textAlign="center" paddingTop="80px">
+//             <BarChartIconComponent strokeWidth={1} />
+//             <div>
+//               <>No token data</>
+//             </div>
+//           </ThemedText.DeprecatedBody>
+//         ) : (
+//           <BarChart
+//             width={500}
+//             height={300}
+//             data={data}
+//             margin={{
+//               top: 5,
+//               right: 10,
+//               left: 10,
+//               bottom: 5,
+//             }}
+//           >
+//             <XAxis dataKey="symbol" axisLine={false} tickLine={false} tickFormatter={formatXAxis} />
+//             <Tooltip cursor={false} content={<CustomTooltip />} />
+//             <Legend />
+//             <Bar
+//               dataKey="current"
+//               stackId="a"
+//               stroke={color}
+//               fill={color}
+//               maxBarSize={80}
+//               onClick={(data: any) => {
+//                 if (chainId) {
+//                   const link = getEtherscanLink(chainId, data.token, 'address')
+//                   window.open(link)
+//                 }
+//               }}
+//             />
+//             <Bar
+//               dataKey="pool"
+//               stackId="a"
+//               stroke={color2}
+//               fill={color2}
+//               maxBarSize={80}
+//               onClick={(data: any) => {
+//                 if (chainId) {
+//                   const link = getEtherscanLink(chainId, data.token, 'address')
+//                   window.open(link)
+//                 }
+//               }}
+//             />
+//           </BarChart>
+//         )}
+//       </ResponsiveContainer>
+//     </Wrapper>
+//   )
+// }
+
+// export default Chart

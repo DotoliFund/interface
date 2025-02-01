@@ -240,6 +240,7 @@
     "multicodec": "3.2.1",
     "multihashes": "4.0.2",
     "nock": "13.3.3",
+    "numbro": "^2.3.2",
     "png-ts": "0.0.3",
     "poisson-disk-sampling": "2.3.1",
     "polished": "3.3.2",
