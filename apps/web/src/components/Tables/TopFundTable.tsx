@@ -7,9 +7,9 @@ import { DeltaArrow, DeltaText } from 'components/Tokens/TokenDetails/Delta'
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
 import { TokenSortMethod, sortAscendingAtom, sortMethodAtom, useSetSortMethod } from 'components/Tokens/state'
 import { MouseoverTooltip } from 'components/Tooltip'
+import { Fund } from 'data/Overview/fundAndWhiteList'
 import { OrderDirection } from 'graphql/data/util'
 import { useAtomValue } from 'jotai/utils'
-import { Fund } from 'pages/Overview'
 import { ReactElement, ReactNode, useMemo } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { Trans } from 'uniswap/src/i18n'
@@ -53,7 +53,7 @@ const TokenTableText = styled(Text, {
   maxWidth: '100%',
 })
 
-export function TopFundsTable({ funds }: { funds: Fund[] }) {
+export function TopFundTable({ funds }: { funds: Fund[] }) {
   return (
     <TableWrapper data-testid="top-tokens-explore-table">
       <FundTable funds={funds} loading={funds ? false : true} />
