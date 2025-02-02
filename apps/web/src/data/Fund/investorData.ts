@@ -2,9 +2,15 @@ import { useQuery } from '@tanstack/react-query'
 import { THE_GRAPH_QUERY_URL } from 'constants/query'
 import { gql, request } from 'graphql-request'
 
-const MANAGER_DATA = gql`
-  query managerData($fundId: String!) {
-    investors(first: 1, where: { isManager: true, fundId: $fundId }, subgraphError: allow) {
+const INVESTOR_DATA = gql`
+  query investors($fundId: String!) {
+    investors(
+      first: 100
+      orderBy: principalUSD
+      orderDirection: desc
+      where: { fundId: $fundId }
+      subgraphError: allow
+    ) {
       id
       createdAtTimestamp
       updatedAtTimestamp
@@ -18,7 +24,7 @@ const MANAGER_DATA = gql`
   }
 `
 
-export interface Manager {
+export interface Investor {
   id: string
   createdAtTimestamp: string
   updatedAtTimestamp: string
@@ -31,23 +37,23 @@ export interface Manager {
 }
 
 interface Data {
-  investors: Manager[]
+  investors: Investor[]
 }
 
 /**
- * Fetch manager data
+ * Fetch investor data
  */
-export function useManagerData(fundId: string | undefined): {
+export function useInvestorData(fundId: string | undefined): {
   data?: Data
 } {
   const { data } = useQuery({
     queryKey: ['investors', fundId],
     async queryFn() {
-      return await request(THE_GRAPH_QUERY_URL, MANAGER_DATA, { fundId })
+      return await request(THE_GRAPH_QUERY_URL, INVESTOR_DATA, { fundId })
     },
   })
   const jsonString = JSON.stringify(data ?? {})
-  const managers: Data = JSON.parse(jsonString)
+  const investors: Data = JSON.parse(jsonString)
 
-  return { data: managers }
+  return { data: investors }
 }
