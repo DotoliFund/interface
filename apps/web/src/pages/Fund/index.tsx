@@ -5,12 +5,12 @@ import VolumeBarChart from 'components/BarChart/volume'
 import { DarkGrayCard } from 'components/Card'
 import Column, { AutoColumn } from 'components/Column'
 import Row, { AutoRow, RowFlat } from 'components/Row'
-import { ManagerTable } from 'components/Tables/ManagerTable'
+import { InvestorTable } from 'components/Tables/InvestorTable'
 import { ToggleElement, ToggleWrapper } from 'components/Toggle/MultiToggle'
 import { MonoSpace } from 'components/shared'
 import { WRAPPED_NATIVE_CURRENCY } from 'constants/tokens'
 import { useFundData } from 'data/Fund/fundData'
-import { useManagerData } from 'data/Fund/managerData'
+import { useInvestorData } from 'data/Fund/investorData'
 import { useVolumeChartData } from 'data/Fund/volumeChartData'
 import { useAccount } from 'hooks/useAccount'
 import { useDotoliInfoContract } from 'hooks/useContract'
@@ -190,7 +190,7 @@ const Fund = () => {
 
   const fundData = useFundData(currentPageFund).data
   const volumeChartData = useVolumeChartData(currentPageFund).data
-  const managerData = useManagerData(currentPageFund).data
+  const investorData = useInvestorData(currentPageFund).data
 
   const [view, setView] = useState(ChartView.CURRENT_ASSET_TOKENS)
 
@@ -544,7 +544,7 @@ const Fund = () => {
           >
             <Trans i18nKey="common.transactions" />
           </Text>
-          <ManagerTable manager={managerData?.investors ?? []} />
+          <InvestorTable investor={investorData?.investors ?? []} />
           <HR />
           <Text
             variant="heading3"
