@@ -7,9 +7,9 @@ import { DeltaArrow, DeltaText } from 'components/Tokens/TokenDetails/Delta'
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
 import { TokenSortMethod, sortAscendingAtom, sortMethodAtom, useSetSortMethod } from 'components/Tokens/state'
 import { MouseoverTooltip } from 'components/Tooltip'
+import { WhiteList } from 'data/Overview/fundAndWhiteList'
 import { OrderDirection } from 'graphql/data/util'
 import { useAtomValue } from 'jotai/utils'
-import { WhiteList } from 'pages/Overview'
 import { ReactElement, ReactNode, useMemo } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { Trans } from 'uniswap/src/i18n'
@@ -53,7 +53,7 @@ interface TokenTableValue {
   linkState: { preloadedLogoSrc?: string }
 }
 
-export function WhiteListsTable({ whiteLists }: { whiteLists: WhiteList[] }) {
+export function WhiteListTable({ whiteLists }: { whiteLists: WhiteList[] }) {
   return (
     <TableWrapper data-testid="top-tokens-explore-table">
       <TokenTable tokens={whiteLists} loading={!whiteLists} />
