@@ -37,6 +37,7 @@ const Vote = lazy(() => import('pages/Vote'))
 const OverviewPage = lazy(() => import('pages/Overview'))
 const AccountPage = lazy(() => import('pages/Account'))
 const FundPage = lazy(() => import('pages/Fund'))
+const FundDetailPage = lazy(() => import('pages/FundDetails'))
 
 // this is the same svg defined in assets/images/blue-loader.svg
 // it is defined here because the remote asset may not have had time to load when this file is executing
@@ -395,6 +396,12 @@ export const routes: RouteDefinition[] = [
   createRouteDefinition({
     path: '/fund/:fundId',
     getElement: () => <FundPage />,
+    getTitle: getPositionPageTitle,
+    getDescription: getPositionPageDescription,
+  }),
+  createRouteDefinition({
+    path: '/fund/:fundId/:investorId',
+    getElement: () => <FundDetailPage />,
     getTitle: getPositionPageTitle,
     getDescription: getPositionPageDescription,
   }),
