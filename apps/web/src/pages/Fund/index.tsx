@@ -5,10 +5,12 @@ import VolumeBarChart from 'components/BarChart/volume'
 import { DarkGrayCard } from 'components/Card'
 import Column, { AutoColumn } from 'components/Column'
 import Row, { AutoRow, RowFlat } from 'components/Row'
+import { InvestorTable } from 'components/Tables/InvestorTable'
 import { ToggleElement, ToggleWrapper } from 'components/Toggle/MultiToggle'
 import { MonoSpace } from 'components/shared'
 import { WRAPPED_NATIVE_CURRENCY } from 'constants/tokens'
 import { useFundData } from 'data/Fund/fundData'
+import { useInvestorData } from 'data/Fund/investorData'
 import { useVolumeChartData } from 'data/Fund/volumeChartData'
 import { useAccount } from 'hooks/useAccount'
 import { useDotoliInfoContract } from 'hooks/useContract'
@@ -188,6 +190,7 @@ const Fund = () => {
 
   const fundData = useFundData(currentPageFund).data
   const volumeChartData = useVolumeChartData(currentPageFund).data
+  const investorData = useInvestorData(currentPageFund).data
 
   const [view, setView] = useState(ChartView.CURRENT_ASSET_TOKENS)
 
@@ -528,6 +531,20 @@ const Fund = () => {
               ) : null}
             </ChartWrapper>
           </Column>
+          <HR />
+          <Text
+            variant="heading3"
+            fontSize={28}
+            $lg={{ fontSize: 24, lineHeight: 32 }}
+            fontWeight="$book"
+            color="$neutral1"
+            cursor="pointer"
+            animation="quick"
+            key={ExploreTab.Tokens}
+          >
+            <Trans i18nKey="common.transactions" />
+          </Text>
+          <InvestorTable investor={investorData?.investors ?? []} />
           <HR />
           <Text
             variant="heading3"
