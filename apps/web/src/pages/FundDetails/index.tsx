@@ -3,6 +3,7 @@ import { CurrencyAmount, Token } from '@uniswap/sdk-core'
 import IERC20Metadata from '@uniswap/v3-periphery/artifacts/contracts/interfaces/IERC20Metadata.sol/IERC20Metadata.json'
 import { FeeAmount, Pool, Position } from '@uniswap/v3-sdk'
 import TokenBarChart from 'components/BarChart/token'
+import { ButtonPrimary } from 'components/Button'
 import { DarkGrayCard } from 'components/Card'
 import Column from 'components/Column'
 import ComposedChart from 'components/ComposedChart'
@@ -21,7 +22,7 @@ import styled, { useTheme } from 'lib/styled-components'
 import RecentTransactions from 'pages/Fund/tables/RecentTransactions'
 import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async/lib/index'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { BREAKPOINTS, ThemeProvider } from 'theme'
 import { Text } from 'ui/src'
 import { IERC20MetadataInterface } from 'uniswap/src/abis/types/v3/IERC20Metadata'
@@ -155,6 +156,7 @@ const FundDetails = () => {
   const currentPageFund = params.fundId
   const investor = params.investorId
   //const nowDate = Math.floor(new Date().getTime() / 1000)
+  const navigate = useNavigate()
 
   const { accent1 } = useTheme()
 
@@ -876,6 +878,16 @@ const FundDetails = () => {
                 loading={loading}
               /> */}
             </LinksContainer>
+            <ButtonPrimary
+              $borderRadius="12px"
+              mr="12px"
+              padding="12px"
+              onClick={() => {
+                navigate(`/swap/${currentPageFund}/${investor}`)
+              }}
+            >
+              <>Swap</>
+            </ButtonPrimary>
           </TokenDetailsWrapper>
         </RightColumn>
       </PageWrapper>

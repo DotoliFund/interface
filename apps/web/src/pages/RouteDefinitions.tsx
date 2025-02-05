@@ -11,6 +11,7 @@ import { isBrowserRouterEnabled } from 'utils/env'
 import Landing from 'pages/Landing'
 import { NewPosition } from 'pages/LegacyPool/NewPosition'
 import Swap from 'pages/Swap'
+import Swap2 from 'pages/Swap2'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 
@@ -183,28 +184,7 @@ export const routes: RouteDefinition[] = [
   createRouteDefinition({
     path: '/create-proposal',
     getTitle: () => t('title.createGovernanceOn'),
-    getDescription: () => t('title.createGovernanceTo'),
-    getElement: () => <Navigate to="/vote/create-proposal" replace />,
-  }),
-  createRouteDefinition({
-    path: '/buy',
-    getElement: () => <Swap />,
-    getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
-  }),
-  createRouteDefinition({
-    path: '/send',
-    getElement: () => <Swap />,
-    getTitle: () => t('title.sendTokens'),
-  }),
-  createRouteDefinition({
-    path: '/limits',
-    getElement: () => <Navigate to="/limit" replace />,
-    getTitle: () => t('title.placeLimit'),
-  }),
-  createRouteDefinition({
-    path: '/limit',
-    getElement: () => <Swap />,
-    getTitle: () => t('title.placeLimit'),
+    getDescription: () => t('apps/web/src/pages/Swap/TaxTooltipBody.tsx'),
   }),
   createRouteDefinition({
     path: '/buy',
@@ -404,6 +384,11 @@ export const routes: RouteDefinition[] = [
     getElement: () => <FundDetailPage />,
     getTitle: getPositionPageTitle,
     getDescription: getPositionPageDescription,
+  }),
+  createRouteDefinition({
+    path: '/swap/:fundId/:investorId',
+    getElement: () => <Swap2 />,
+    getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
   }),
 ]
 
