@@ -12,6 +12,7 @@ import { GrayCard } from 'components/Card'
 import Column, { AutoColumn } from 'components/Column'
 import { ConfirmSwapModal } from 'components/ConfirmSwapModal'
 import SwapCurrencyInputPanel from 'components/CurrencyInputPanel/SwapCurrencyInputPanel'
+import SwapFromCurrencyInputPanel from 'components/CurrencyInputPanel/SwapFromCurrencyInputPanel'
 import ErrorIcon from 'components/Icons/Error'
 import Row from 'components/Row'
 import TokenSafetyModal from 'components/TokenSafety/TokenSafetyModal'
@@ -560,7 +561,7 @@ export function SwapForm2({
       <div style={{ display: 'relative' }}>
         <SwapSection>
           <Trace section={InterfaceSectionName.CURRENCY_INPUT_PANEL}>
-            <SwapCurrencyInputPanel
+            <SwapFromCurrencyInputPanel
               label={<Trans i18nKey="common.sell.label" />}
               disabled={disableTokenInputs}
               value={formattedAmounts[Field.INPUT]}

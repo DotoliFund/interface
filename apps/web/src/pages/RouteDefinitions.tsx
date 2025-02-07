@@ -380,13 +380,13 @@ export const routes: RouteDefinition[] = [
     getDescription: getPositionPageDescription,
   }),
   createRouteDefinition({
-    path: '/fund/:fundId/:investorId',
+    path: '/fund/:fundId/:investor',
     getElement: () => <FundDetailPage />,
     getTitle: getPositionPageTitle,
     getDescription: getPositionPageDescription,
   }),
   createRouteDefinition({
-    path: '/swap/:fundId/:investorId',
+    path: '/swap/:fundId/:investor',
     getElement: () => <Swap2 />,
     getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
   }),

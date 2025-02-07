@@ -2,7 +2,7 @@ import { InterfacePageName } from '@uniswap/analytics-events'
 import { Currency } from '@uniswap/sdk-core'
 import { NetworkAlert } from 'components/NetworkAlert/NetworkAlert'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
-import SwapHeader from 'components/swap/SwapHeader2'
+import SwapHeader2 from 'components/swap/SwapHeader2'
 import { Field } from 'components/swap/constants'
 import { PageWrapper, SwapWrapper } from 'components/swap/styled'
 import { useSupportedChainId } from 'constants/chains'
@@ -131,7 +131,7 @@ function Swap2({
           >
             <Flex width="100%">
               <SwapWrapper isDark={isDark} className={className} id="swap-page">
-                {!hideHeader && <SwapHeader compact={compact || !screenSize.sm} syncTabToUrl={true} />}
+                {!hideHeader && <SwapHeader2 compact={compact || !screenSize.sm} syncTabToUrl={true} />}
                 {currentTab === SwapTab.Swap && (
                   <SwapForm2
                     onCurrencyChange={onCurrencyChange}

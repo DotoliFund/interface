@@ -154,7 +154,7 @@ const FundDetails = () => {
   const account = useAccount()
   const params = useParams()
   const currentPageFund = params.fundId
-  const investor = params.investorId
+  const investor = params.investor
   //const nowDate = Math.floor(new Date().getTime() / 1000)
   const navigate = useNavigate()
 
