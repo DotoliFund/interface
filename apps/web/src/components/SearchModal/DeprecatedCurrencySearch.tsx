@@ -5,6 +5,7 @@ import { ChainSelector } from 'components/NavBar/ChainSelector'
 import Row, { RowBetween } from 'components/Row'
 import CommonBases from 'components/SearchModal/CommonBases'
 import CurrencyList, { CurrencyRow, formatAnalyticsEventProperties } from 'components/SearchModal/CurrencyList'
+import CurrencyList2, { CurrencyRow2, formatAnalyticsEventProperties2 } from 'components/SearchModal/CurrencyList2'
 import { PaddedColumn, SearchInput, Separator } from 'components/SearchModal/styled'
 import { useCurrencySearchResults, useCurrencySearchResults2 } from 'components/SearchModal/useCurrencySearchResults'
 import useDebounce from 'hooks/useDebounce'
@@ -402,7 +403,7 @@ export function DeprecatedCurrencySearch2({
         <Separator />
         {searchCurrency ? (
           <Column style={{ padding: '20px 0', height: '100%' }}>
-            <CurrencyRow
+            <CurrencyRow2
               currency={searchCurrency}
               isSelected={Boolean(searchCurrency && selectedCurrency && selectedCurrency.equals(searchCurrency))}
               onSelect={(hasWarning: boolean) => searchCurrency && handleCurrencySelect(searchCurrency, hasWarning)}
@@ -410,7 +411,7 @@ export function DeprecatedCurrencySearch2({
                 searchCurrency && otherSelectedCurrency && otherSelectedCurrency.equals(searchCurrency),
               )}
               showCurrencyAmount={showCurrencyAmount}
-              eventProperties={formatAnalyticsEventProperties(
+              eventProperties={formatAnalyticsEventProperties2(
                 searchCurrency,
                 0,
                 [searchCurrency],
@@ -427,7 +428,7 @@ export function DeprecatedCurrencySearch2({
           <div style={{ flex: '1' }}>
             <AutoSizer disableWidth>
               {({ height }: { height: number }) => (
-                <CurrencyList
+                <CurrencyList2
                   height={height}
                   currencies={allCurrencyRows}
                   onCurrencySelect={handleCurrencySelect}
