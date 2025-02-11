@@ -269,10 +269,6 @@ export function DeprecatedCurrencySearch2({
   isOpen,
   filters,
 }: CurrencySearchProps) {
-  const { showCommonBases } = {
-    ...DEFAULT_CURRENCY_SEARCH_FILTERS,
-    ...filters,
-  }
   const { chainId } = useSwapAndLimitContext()
   const theme = useTheme()
 
@@ -295,8 +291,6 @@ export function DeprecatedCurrencySearch2({
   })
 
   const { balanceMap } = useTokenBalances()
-
-  const native = useNativeCurrency(chainId)
 
   const selectChain = useSelectChain()
   const handleCurrencySelect = useCallback(
@@ -323,37 +317,6 @@ export function DeprecatedCurrencySearch2({
     }
   }, [isOpen])
 
-  // manage focus on modal show
-  const inputRef = useRef<HTMLInputElement>()
-  const handleInput = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const input = event.target.value
-    const checksummedInput = isAddress(input)
-    setSearchQuery(checksummedInput || input)
-    fixedList.current?.scrollTo(0)
-  }, [])
-
-  // Allows the user to select a currency by pressing Enter if it's the only currency in the list.
-  const handleEnter = useCallback(
-    (e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-        const currencyResults = allCurrencyRows.filter((currencyRow) => !!currencyRow.currency)
-        const s = debouncedQuery.toLowerCase().trim()
-        if (s === native?.symbol?.toLowerCase()) {
-          handleCurrencySelect(native)
-        } else if (currencyResults.length > 0) {
-          if (
-            currencyResults[0]?.currency &&
-            (currencyResults[0].currency.symbol?.toLowerCase() === debouncedQuery.trim().toLowerCase() ||
-              currencyResults.length === 1)
-          ) {
-            handleCurrencySelect(currencyResults[0].currency)
-          }
-        }
-      }
-    },
-    [allCurrencyRows, debouncedQuery, native, handleCurrencySelect],
-  )
-
   // menu ui
   const [open, toggle] = useToggle(false)
   const node = useRef<HTMLDivElement>()
@@ -373,32 +336,6 @@ export function DeprecatedCurrencySearch2({
             </Text>
             <CloseIcon onClick={onDismiss} />
           </RowBetween>
-          {/* <Row gap="4px">
-            <SearchInput
-              type="text"
-              id="token-search-input"
-              data-testid="token-search-input"
-              placeholder={t`currency.search.placeholder`}
-              autoComplete="off"
-              value={searchQuery}
-              ref={inputRef as RefObject<HTMLInputElement>}
-              onChange={handleInput}
-              onKeyDown={handleEnter}
-            />
-            <ChainSelectorWrapper>
-              <ChainSelector />
-            </ChainSelectorWrapper>
-          </Row>
-          {showCommonBases && (
-            <CommonBases
-              chainId={chainId}
-              onSelect={handleCurrencySelect}
-              closeModal={onDismiss}
-              selectedCurrency={selectedCurrency}
-              searchQuery={searchQuery}
-              isAddressSearch={isAddressSearch}
-            />
-          )} */}
         </PaddedColumn>
         <Separator />
         {searchCurrency ? (
