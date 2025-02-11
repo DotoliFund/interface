@@ -472,15 +472,15 @@ export function useCurrencySearchResults2({
       ]
     } else if (sortedTokensWithoutPortfolio.length === 0) {
       return [
-        new CurrencyListSectionTitle(t('tokens.selector.section.yours')),
+        // new CurrencyListSectionTitle(t('tokens.selector.section.yours')),
         ...portfolioTokens.map(currencyListRowMapper),
       ]
     } else {
       return [
-        new CurrencyListSectionTitle(t('tokens.selector.section.yours')),
+        // new CurrencyListSectionTitle(t('tokens.selector.section.yours')),
         ...portfolioTokens.map(currencyListRowMapper),
-        new CurrencyListSectionTitle(t('tokens.selector.section.popular')),
-        ...sortedTokensWithoutPortfolio.map(currencyListRowMapper),
+        // new CurrencyListSectionTitle(t('tokens.selector.section.popular')),
+        // ...sortedTokensWithoutPortfolio.map(currencyListRowMapper),
       ]
     }
   }, [searchQuery, portfolioTokens, sortedTokensWithoutPortfolio, sortedCombinedTokens])
