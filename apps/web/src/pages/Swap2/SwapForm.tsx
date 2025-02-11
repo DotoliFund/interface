@@ -11,8 +11,8 @@ import { ButtonError, ButtonLight, ButtonPrimary } from 'components/Button'
 import { GrayCard } from 'components/Card'
 import Column, { AutoColumn } from 'components/Column'
 import { ConfirmSwapModal } from 'components/ConfirmSwapModal'
+import SwapCurrencyInputPanel from 'components/CurrencyInputPanel/SwapCurrencyInputPanel'
 import SwapFromCurrencyInputPanel from 'components/CurrencyInputPanel/SwapFromCurrencyInputPanel'
-import SwapToCurrencyInputPanel from 'components/CurrencyInputPanel/SwapToCurrencyInputPanel'
 import ErrorIcon from 'components/Icons/Error'
 import Row from 'components/Row'
 import TokenSafetyModal from 'components/TokenSafety/TokenSafetyModal'
@@ -610,7 +610,7 @@ export function SwapForm2({
         <div>
           <OutputSwapSection>
             <Trace section={InterfaceSectionName.CURRENCY_OUTPUT_PANEL}>
-              <SwapToCurrencyInputPanel
+              <SwapCurrencyInputPanel
                 value={formattedAmounts[Field.OUTPUT]}
                 disabled={disableTokenInputs}
                 onUserInput={handleTypeOutput}
