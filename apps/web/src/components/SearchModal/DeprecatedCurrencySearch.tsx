@@ -373,7 +373,7 @@ export function DeprecatedCurrencySearch2({
             </Text>
             <CloseIcon onClick={onDismiss} />
           </RowBetween>
-          <Row gap="4px">
+          {/* <Row gap="4px">
             <SearchInput
               type="text"
               id="token-search-input"
@@ -398,7 +398,7 @@ export function DeprecatedCurrencySearch2({
               searchQuery={searchQuery}
               isAddressSearch={isAddressSearch}
             />
-          )}
+          )} */}
         </PaddedColumn>
         <Separator />
         {searchCurrency ? (
