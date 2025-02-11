@@ -6,6 +6,7 @@ import { useCurrency, useCurrencyInfo } from 'hooks/Tokens'
 import { useAccount } from 'hooks/useAccount'
 import useAutoSlippageTolerance from 'hooks/useAutoSlippageTolerance'
 import { useDebouncedTrade } from 'hooks/useDebouncedTrade'
+import useInvestorCurrencyBalance from 'hooks/useInvestorCurrencyBalance'
 import useParsedQueryString from 'hooks/useParsedQueryString'
 import { useSwapTaxes } from 'hooks/useSwapTaxes'
 import { useUSDPrice } from 'hooks/useUSDPrice'
@@ -13,7 +14,8 @@ import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
 import { ParsedQs } from 'qs'
 import { ReactNode, useCallback, useEffect, useMemo } from 'react'
-import { useCurrencyBalance, useCurrencyBalances } from 'state/connection/hooks'
+import { useParams } from 'react-router-dom'
+import { useCurrencyBalance } from 'state/connection/hooks'
 import { InterfaceTrade, RouterPreference, TradeState } from 'state/routing/types'
 import { isClassicTrade, isSubmittableTrade, isUniswapXTrade } from 'state/routing/utils'
 import { CurrencyState, SerializedCurrencyState, SwapInfo, SwapState } from 'state/swap/types'
@@ -134,6 +136,9 @@ export function useSwapActionHandlers(): {
 // from the current swap inputs, compute the best trade and return it.
 export function useDerivedSwapInfo(state: SwapState): SwapInfo {
   const account = useAccount()
+  const params = useParams()
+  const fundId = params.fundId
+  const investor = params.investor
   const { chainId, currencyState } = useSwapAndLimitContext()
   const nativeCurrency = useNativeCurrency(chainId)
   const balance = useCurrencyBalance(account.address, nativeCurrency)
@@ -154,9 +159,15 @@ export function useDerivedSwapInfo(state: SwapState): SwapInfo {
     chainId,
   )
 
-  const relevantTokenBalances = useCurrencyBalances(
-    account.address,
-    useMemo(() => [inputCurrency ?? undefined, outputCurrency ?? undefined], [inputCurrency, outputCurrency]),
+  const inputTokenBalances = useInvestorCurrencyBalance(
+    fundId ?? undefined,
+    investor,
+    inputCurrency?.wrapped.address ?? undefined,
+  )
+  const outputTokenBalances = useInvestorCurrencyBalance(
+    fundId ?? undefined,
+    investor,
+    outputCurrency?.wrapped.address ?? undefined,
   )
 
   const isExactIn: boolean = independentField === Field.INPUT
@@ -188,10 +199,10 @@ export function useDerivedSwapInfo(state: SwapState): SwapInfo {
 
   const currencyBalances = useMemo(
     () => ({
-      [Field.INPUT]: relevantTokenBalances[0],
-      [Field.OUTPUT]: relevantTokenBalances[1],
+      [Field.INPUT]: inputTokenBalances,
+      [Field.OUTPUT]: outputTokenBalances,
     }),
-    [relevantTokenBalances],
+    [inputTokenBalances, outputTokenBalances],
   )
 
   const currencies: { [field in Field]?: Currency } = useMemo(
